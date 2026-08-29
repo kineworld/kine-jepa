@@ -108,10 +108,10 @@ def main():
 
     for step in range(start_step, args.steps):
         try:
-            video = next(data_iter)[0]
+            video = next(data_iter)
         except StopIteration:
             data_iter = iter(loader)
-            video = next(data_iter)[0]
+            video = next(data_iter)
         video = video.to(device, non_blocking=True)
 
         ratio = mask_schedule(step, args.steps)

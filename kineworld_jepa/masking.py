@@ -57,6 +57,11 @@ class MultiBlockMask3D:
             random.shuffle(unmasked)
             for i in unmasked[: target - n_masked]:
                 flat[i] = True
+        elif n_masked > target:  # trim overshoot so every sample masks the same count
+            masked = flat.nonzero(as_tuple=True)[0].tolist()
+            random.shuffle(masked)
+            for i in masked[: n_masked - target]:
+                flat[i] = False
         return flat
 
     def sample_batch(self, batch_size, mask_ratio=None, device="cpu"):
