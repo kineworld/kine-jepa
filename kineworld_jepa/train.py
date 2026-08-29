@@ -18,7 +18,7 @@ from .masking import MultiBlockMask3D
 
 def cosine_schedule(step, total, start, end, warmup=0):
     if step < warmup:
-        return start + (end - start) * step / max(1, warmup)
+        return start * step / max(1, warmup)  # linear ramp 0 -> peak
     frac = min(1.0, (step - warmup) / max(1, total - warmup))
     return end + (start - end) * (1 + math.cos(math.pi * frac)) / 2
 
