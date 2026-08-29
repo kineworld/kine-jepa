@@ -1,0 +1,5 @@
+# Install torch separately with the cu128 index (required for RTX 5070 Ti / Blackwell):
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+opencv-python>=4.9
+numpy>=1.26
+tqdm>=4.66
