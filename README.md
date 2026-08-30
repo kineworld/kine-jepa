@@ -37,6 +37,10 @@ python -m venv .venv
 
 实验日志（jsonl 指标 + 配置 + 摘要 + 检查点）写入 `experiments/KINE-EXP-001/run-*/`。
 
+## 公开检查点
+
+- [Release `exp001-step5000-weights`](https://github.com/zoahdev/kine-jepa/releases/tag/exp001-step5000-weights)：KINE-EXP-001 第 5000 步中间检查点（fp16 在线编码器，112.6 MB，MIT），可被 kine-bench 的 `load_model` 直接加载。
+
 ## 测试与评测
 
 ```bash
