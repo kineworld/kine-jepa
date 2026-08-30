@@ -1,6 +1,8 @@
-# KINE-JEPA（kine-exp001）
+# KineOne-WM-Latent 0.1（历史仓库：kine-jepa）
 
-勘境（KINEWORLD）世界模型技术底座：对 V-JEPA（arXiv:2404.08471）的 **clean-room 复现与改进**。
+勘境（Kineworld）的 KineOne-WM 潜在表征底座：对 V-JEPA（arXiv:2404.08471）的 **clean-room 复现与改进**。
+
+> 正式模型名为 **KineOne-WM**。`KINE-JEPA` 仅保留为 KINE-EXP-001 的历史架构代号；本项目与第三方榜单中既有的 `KineWorld` 条目无关。
 
 > Implementation inspired by the V-JEPA paper (arXiv:2404.08471); all code original.
 > 未复制任何 V-JEPA 官方代码与权重（其为 CC-BY-NC-4.0，禁止商用）。
@@ -57,7 +59,7 @@ python -m venv .venv
 kineworld_jepa/
   vit.py       3D tubelet ViT 编码器
   masking.py   时空多块掩码
-  jepa.py      KINE-JEPA（编码器 + EMA 目标编码器 + 预测器）
+  jepa.py      KineOne-WM-Latent（编码器 + EMA 目标编码器 + 预测器）
   dataset.py   kine-datapipe 视频片段数据集 + 合成冒烟数据
   train.py     单卡训练循环与实验日志
 ```

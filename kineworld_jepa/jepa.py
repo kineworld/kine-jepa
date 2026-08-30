@@ -1,5 +1,9 @@
 # Implementation inspired by the V-JEPA paper (arXiv:2404.08471); all code original.
-"""KINE-JEPA: online encoder + EMA target encoder + transformer predictor."""
+"""KineOne-WM-Latent: online encoder + EMA target encoder + transformer predictor.
+
+The Python package name is retained for compatibility with historical
+KINE-EXP-001 checkpoints.
+"""
 
 import copy
 import math
