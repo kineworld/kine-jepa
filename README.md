@@ -22,6 +22,8 @@ JEPA（联合嵌入预测架构）视频自监督模型：
 ## 用法
 
 ```bash
+git clone https://github.com/zoahdev/kine-jepa.git
+cd kine-jepa
 python -m venv .venv
 .venv/Scripts/pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
 .venv/Scripts/pip install -r requirements.txt
@@ -48,7 +50,6 @@ kineworld_jepa/
 
 ## 路线图
 
-见 `../docs/KINE-EXP-001-技术底座-VJEPA复现与改进.md`：
 复现（0-8 周）→ 改进（物理先验损失 / 动作条件化 / 长时程记忆压缩，均做消融并公开）→ 机器人"想象引擎"产品化。
 
 ## 许可证
