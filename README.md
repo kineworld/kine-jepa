@@ -37,6 +37,16 @@ python -m venv .venv
 
 实验日志（jsonl 指标 + 配置 + 摘要 + 检查点）写入 `experiments/KINE-EXP-001/run-*/`。
 
+## 测试与评测
+
+```bash
+# 核心模块单元测试（CPU 即可，无需 GPU）
+.venv/Scripts/python tests/test_core.py
+```
+
+训练产出的检查点用 **KINE-Bench** 评测（时序理解 / 运动幅度 / 未来预测保真度，单卡可复核）：
+[github.com/zoahdev/kine-bench](https://github.com/zoahdev/kine-bench)
+
 ## 结构
 
 ```
