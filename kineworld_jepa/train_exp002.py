@@ -1,8 +1,4 @@
-"""KINE-EXP-002 trainer: freeze encoder, train on paired do() clips.
-
-  python -m kineworld_jepa.train_exp002 --tiny --steps 8 --batch-size 2
-  python -m kineworld_jepa.train_exp002 --resume PATH --arm C --steps 2000
-"""
+"""KINE-EXP-002 trainer: freeze encoder, train on paired do() clips."""
 from __future__ import annotations
 import argparse, json, time
 from datetime import datetime
@@ -26,6 +22,8 @@ def build_args():
     ap.add_argument("--num-frames", type=int, default=16)
     ap.add_argument("--img-size", type=int, default=64)
     ap.add_argument("--n-pairs", type=int, default=64)
+    ap.add_argument("--catalog", type=str, default=None)
+    ap.add_argument("--video-dir", type=str, default=None)
     ap.add_argument("--lr", type=float, default=1e-4)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--enc-depth", type=int, default=12)
@@ -59,17 +57,23 @@ def main():
         base = KineJEPA(img_size=size, num_frames=frames,
                         enc_depth=args.enc_depth, pred_depth=args.pred_depth)
     if args.resume:
-        ckpt = torch.load(args.resume, map_location="cpu")
+        ckpt = torch.load(args.resume, map_location="cpu", weights_only=False)
         base.load_state_dict(ckpt["model"], strict=False)
         print(f"[exp002] loaded {args.resume}")
 
     model = CausalKineJEPA(base).to(device)
     masker = MultiBlockMask3D(model.base.grid)
-    ds = PairedInterventionDataset(n_pairs=args.n_pairs, num_frames=frames, size=size)
+    if args.catalog:
+        from .catalog import CatalogDataset
+        ds = CatalogDataset(args.catalog, video_dir=args.video_dir, num_frames=frames, size=size)
+        src = f"catalog:{args.catalog}"
+    else:
+        ds = PairedInterventionDataset(n_pairs=args.n_pairs, num_frames=frames, size=size)
+        src = f"synthetic-pairs:{args.n_pairs}"
     loader = DataLoader(ds, batch_size=args.batch_size, shuffle=True, drop_last=True)
     data_iter = iter(loader)
     opt = torch.optim.AdamW(model.trainable_parameters(), lr=args.lr)
-    print(f"[exp002] arm={args.arm} pairs={args.n_pairs} trainable={sum(p.numel() for p in model.trainable_parameters())} device={device}")
+    print(f"[exp002] arm={args.arm} data={src} n={len(ds)} trainable={sum(p.numel() for p in model.trainable_parameters())} device={device}")
 
     metrics = open(run_dir / "metrics.jsonl", "a", encoding="utf-8")
     t0 = time.time(); acc = 0.0; n = 0
@@ -94,7 +98,8 @@ def main():
             metrics.write(json.dumps(rec) + "\n"); metrics.flush()
             print(f"step {rec['step']:>5} | {args.arm} | loss {rec['loss']:.4f}")
             acc, n = 0.0, 0
-    torch.save({"model": model.state_dict(), "arm": args.arm, "step": args.steps, "config": vars(args)}, run_dir / "ckpt-final.pt")
+    cfg = vars(args)
+    torch.save({"model": model.state_dict(), "arm": args.arm, "step": args.steps, "config": cfg}, run_dir / "ckpt-final.pt")
     metrics.close()
     print(f"[done] {run_dir}")
 
