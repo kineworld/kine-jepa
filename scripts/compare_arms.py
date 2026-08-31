@@ -6,9 +6,11 @@ from pathlib import Path
 
 NEED = ("KINE-EVT-1", "KINE-CAU-1", "KINE-FUT-1")
 
-def score(task):
+def score(name, task):
     if not isinstance(task, dict):
         return None
+    if name == "KINE-CAU-1" and task.get("auc_do") is not None:
+        return float(task["auc_do"])
     for k in ("auc", "score", "cosine", "top1"):
         if k in task and task[k] is not None:
             return float(task[k])
@@ -18,7 +20,7 @@ def score(task):
 def load(path):
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     tasks = data.get("tasks", data)
-    return {name: score(tasks.get(name, {})) for name in NEED}
+    return {name: score(name, tasks.get(name, {})) for name in NEED}
 
 def decide(rows):
     a, b, c = rows["A"], rows["B"], rows["C"]
