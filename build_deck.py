@@ -257,7 +257,8 @@ html = f"""<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
   <h2><span class="n">9</span>可交互反事实招牌（评审肉眼见"想象替代未来"）</h2>
   <p class="sub">真实 CounterfactualRollout(dim=16) 预计算 36 个 do(x)×arm 网格场景，PCA 投影到 2D；下方为自包含交互件——点 do(x)、拖 arm / horizon 滑块即可实时重绘轨迹与分歧。</p>
   <div class="embed"><iframe src="counterfactual_interactive.html" title="KINEWORLD 可交互反事实推演"></iframe></div>
-  <p class="note">证据源 <code>counterfactual_interactive.py</code>（commit f70ae2c）：PCA 前两主成分解释率 30.6% / 17.3%，纯 JS 无依赖。
+  <p class="note">若内嵌交互件未加载（部分受限阅读器禁用 iframe），<a href="counterfactual_interactive.html">点此在新标签打开反事实 demo</a>。
+  证据源 <code>counterfactual_interactive.py</code>（commit f70ae2c）：PCA 前两主成分解释率 30.6% / 17.3%，纯 JS 无依赖。
   这是面向<b>评审 / 合作方</b>的招牌件——无需读论文即可直观理解"同一场景、换一个介入会发生什么"。生产形态换真实 V-JEPA 2 特征 + 私有权重，即物理反事实问答界面。</p>
 </section>
 
