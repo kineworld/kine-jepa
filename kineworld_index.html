@@ -1,0 +1,122 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KINEWORLD · 申报包统一入口</title>
+<style>
+  :root { --ink:#0f172a; --mut:#64748b; --bd:#e2e8f0; --bg:#fff; --accent:#2563eb; --ok:#16a34a; --warn:#d97706; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+         margin:0; background:#f1f5f9; color:var(--ink); }
+  .hero { background:linear-gradient(160deg,#0f172a,#1e3a8a); color:#fff; padding:38px 28px; }
+  .hero .wrap, .wrap { max-width:980px; margin:0 auto; padding:0 28px; }
+  .hero h1 { font-size:27px; margin:0 0 8px; letter-spacing:.5px; }
+  .hero .tag { display:inline-block; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
+               padding:4px 12px; border-radius:999px; font-size:13px; margin-bottom:12px; }
+  .hero p { color:#cbd5e1; font-size:15px; line-height:1.7; max-width:760px; margin:0; }
+  section { margin:30px 0; }
+  h2 { font-size:20px; margin:0 0 14px; display:flex; align-items:center; gap:10px; }
+  h2 .n { background:var(--accent); color:#fff; width:28px; height:28px; border-radius:8px;
+          display:inline-flex; align-items:center; justify-content:center; font-size:14px; }
+  .sub { color:var(--mut); font-size:14px; margin:0 0 16px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
+  .card { background:var(--bg); border:1px solid var(--bd); border-radius:14px; padding:18px 20px;
+          display:flex; flex-direction:column; }
+  .card h3 { margin:0 0 6px; font-size:16px; }
+  .card p { margin:0 0 14px; font-size:13px; color:var(--mut); line-height:1.6; flex:1; }
+  .card a { align-self:flex-start; text-decoration:none; background:var(--accent); color:#fff;
+            padding:8px 16px; border-radius:9px; font-size:13px; font-weight:600; }
+  .card a:hover { filter:brightness(1.08); }
+  .card .k { font-size:12px; color:var(--mut); }
+  .filing { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .fcard { border-radius:14px; padding:18px 20px; color:#fff; }
+  .fcard.a { background:linear-gradient(150deg,#b45309,#d97706); }
+  .fcard.b { background:linear-gradient(150deg,#1e40af,#2563eb); }
+  .fcard h3 { margin:0 0 10px; font-size:17px; }
+  .chk { display:flex; align-items:flex-start; gap:8px; font-size:13px; line-height:1.5; margin:7px 0; }
+  .chk .box { width:18px; height:18px; border-radius:5px; flex:none; display:inline-flex;
+              align-items:center; justify-content:center; font-size:12px; font-weight:800; margin-top:1px; }
+  .box.done { background:#dcfce7; color:#166534; border:1px solid #86efac; }
+  .box.pend { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; }
+  .box.user { background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe; }
+  .warn { background:#fff7ed; border:1px solid #fed7aa; border-radius:12px; padding:14px 16px;
+          font-size:13px; color:#9a3412; line-height:1.7; }
+  footer { color:var(--mut); font-size:12px; text-align:center; padding:24px; }
+</style></head><body>
+
+<div class="hero"><div class="wrap">
+  <span class="tag">勘境 · KineOne-WM · 反环境感知世界模型 · 申报包</span>
+  <h1>KINEWORLD 申报统一入口</h1>
+  <p>本页是 <b>9/20 引航陪跑创业营</b> 与 <b>10/1 合肥国资</b> 两条申报通道的单一材料入口。
+  技术证据、非技术叙事、团队里程碑、可交互招牌、GPU 评测指南全部聚合于此，逐一点开即可发送评审。</p>
+</div></div>
+
+<div class="wrap">
+
+<section>
+  <h2><span class="n">1</span>申报就绪度</h2>
+  <p class="sub">✓ 已就绪（Agent 可交付） · ⏳ 待用户侧动作 · 🔧 待设备 / 数据</p>
+  <div class="filing">
+    <div class="fcard a">
+      <h3>9/20 · 引航陪跑创业营</h3>
+      <div class="chk"><span class="box done">✓</span><span>技术可行性佐证：能力证据台 10 支柱</span></div>
+      <div class="chk"><span class="box done">✓</span><span>非技术评审摘要：PITCH_CN 一页叙事</span></div>
+      <div class="chk"><span class="box done">✓</span><span>团队与里程碑：MILESTONES_CN</span></div>
+      <div class="chk"><span class="box done">✓</span><span>可交互招牌：反事实 demo（评审肉眼见）</span></div>
+      <div class="chk"><span class="box user">◑</span><span>申请提交：用户线上下单（材料已备齐）</span></div>
+    </div>
+    <div class="fcard b">
+      <h3>10/1 · 合肥国资 + 公司注册</h3>
+      <div class="chk"><span class="box done">✓</span><span>差异化定位（合规 + 低成本 + 可规划/反事实）</span></div>
+      <div class="chk"><span class="box done">✓</span><span>自主可控论证：V-JEPA 2 MIT/Apache-2.0 全开源</span></div>
+      <div class="chk"><span class="box user">◑</span><span>公司注册：用户线下办理（章程/股权/开户）</span></div>
+      <div class="chk"><span class="box pend">🔧</span><span>GPU 真实评测：用户设备跑 bench 启动器</span></div>
+      <div class="chk"><span class="box pend">🔧</span><span>真实轨迹后训练：需 GPU + 标注（闭源）</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">2</span>核心材料</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>能力证据台（10 支柱）</h3>
+      <p>真实特征端到端 / 反事实 / 后训练(合成+真实) / 差异化矩阵 / 开源边界 / 路线图 / 申报节点 / 可交互 demo / GPU 评测态。技术 due-diligence 主件。</p>
+      <a href="kineworld_capability_deck.html">打开证据台 →</a>
+    </div>
+    <div class="card">
+      <h3>可交互反事实招牌</h3>
+      <p>36 场景 do×arm 网格，PCA 2D，纯 JS 实时重绘。发给评审/合作方，无需读论文即懂"想象替代未来"。</p>
+      <a href="counterfactual_interactive.html">打开交互件 →</a>
+    </div>
+    <div class="card">
+      <h3>申报版一页叙事（PITCH_CN）</h3>
+      <p>非技术 3 分钟可读：定位 / 痛点 / 差异化 / 已验证证据 / 护城河 / 申报节点 / 团队下一步。</p>
+      <a href="PITCH_CN.md">打开 PITCH →</a>
+    </div>
+    <div class="card">
+      <h3>团队与里程碑（MILESTONES_CN）</h3>
+      <p>诚实版：单人极早期团队现状、融资后岗位路线、真实 commit 里程碑、申报窗口与诚实边界。</p>
+      <a href="MILESTONES_CN.md">打开里程碑 →</a>
+    </div>
+    <div class="card">
+      <h3>GPU 评测指南（BENCH_GPU）</h3>
+      <p>一键启动器 + 数据管线 + 任务表。用户 GPU 上一行命令出 KINE-TEMP/MOT/EVT 硬数字。</p>
+      <a href="BENCH_GPU.md">打开指南 →</a>
+    </div>
+    <div class="card">
+      <h3>开源仓库 README</h3>
+      <p>架构栈、证据表、开源/闭源边界、申报节点、MIT 许可。技术信用的公开来源。</p>
+      <a href="README.md">打开 README →</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">3</span>诚实边界</h2>
+  <div class="warn"><b>当前为架构 + moat recipe 证明</b>（随机初始化 / 合成动力学 / 21 对概念验证），非大规模物理预测。
+  真实轨迹后训练（生产形态，物理可信）方法已验证、路径明确，但需<b>用户 GPU 与标注数据</b>，属闭源配方。
+  GPU 真实评测数字待用户在设备上运行 `bench_gpu_launcher.py` 后填入证据台第 10 支柱。
+  所有指标均来自本仓库可复现脚本，无外部断言；commit 哈希可在 <code>zoahdev/kine-jepa</code> 公开核验。</div>
+</section>
+
+<footer>KINEWORLD · KineOne-WM — 反环境感知世界模型 · 申报包统一入口 · 全开源可复现</footer>
+</div></body></html>
