@@ -32,7 +32,7 @@
 | 真实特征后训练 | 同一配方在真实 V-JEPA 2 特征上收敛（留一 ↓30%） | `real_feature_posttrain.py`（`e33e303`） |
 | 统一证据台 | 能力证据台 8→10 支柱（内嵌可交互 demo + GPU 实测） | `kineworld_capability_deck.html`（`b4447f1`，22KB） |
 | GPU 评测跑通 | RTX 5070 Ti Laptop（CUDA）跑完 98 条合成：901.7s，≈160× vs CPU | `bench_report.json` / `bench_report.html`（`b4447f1`） |
-| 分辨率扫描 | 64/128/256 三档吞吐扫描，回应「降采样省算力」质疑 | `gpu_resolution_sweep.py` / `gpu_sweep.html`（`5ad7529`） |
+| 分辨率扫描 | 64/128/256 三档吞吐扫描：**256px（原生）仅慢 1.4×**（16.21s/条 vs 11.79s/条）→ 降采样几乎不省算力，「取巧」质疑不成立 | `gpu_resolution_sweep.py` / `gpu_sweep.html`（`6631feb`） |
 | 发布闸门 | 申报包自检器：产物存在 / 引用不断链 / HTML 自包含 / 脚本可编译 | `validate_package.py`（`c12b403`，全绿） |
 | 申报叙事 | 非技术一页叙事 + 开源仓库 README | `PITCH_CN.md` / `README.md`（`4bf8952`） |
 
@@ -42,7 +42,7 @@
 |---|---|---|
 | **2026-09-20** | 引航陪跑创业营申请提交 | 本证据台 + PITCH_CN 作技术可行性佐证（已就绪） |
 | **2026-10-01** | 合肥国资申报 + 公司注册 | 差异化定位（可规划 / 反事实 + 商用合规 + 单设备部署）已就绪 |
-| ~~用户 GPU 就绪~~ **已完成** | ~~KINE-Bench 评测~~ → CUDA 链路已跑通（98 条合成，901.7s，≈160× vs CPU） | ✅ 本机 RTX 5070 Ti 完成（`b4447f1`） |
+| ~~用户 GPU 就绪~~ **已完成** | ~~KINE-Bench 评测~~ → CUDA 链路已跑通（98 条合成，901.7s，≈160× vs CPU；原生 256px 全量评测已完成，见 `bench_report_256.json`） | ✅ 本机 RTX 5070 Ti 完成（`b4447f1` / `6631feb`） |
 | 真实片段就绪 | 真实 98 条视频跑 KINE-Bench，取 TEMP/MOT/**EVT** 硬数字 | 真实视频文件夹 → `--data-dir`（EVT-1 另需真实 events.json） |
 | 融资 / 数据就绪 | 真实轨迹后训练 → 物理可信 KineOne-WM（闭源配方落地） | GPU + 标注数据 + 私有权重 |
 
