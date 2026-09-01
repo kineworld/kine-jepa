@@ -128,14 +128,16 @@ html = f"""<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
   .warn {{ background:#fff7ed; border:1px solid #fed7aa; border-radius:12px; padding:14px 16px;
           font-size:13px; color:#9a3412; line-height:1.7; }}
   footer {{ color:var(--mut); font-size:12px; text-align:center; padding:24px; }}
+  .embed {{ background:var(--bg); border:1px solid var(--bd); border-radius:14px; padding:0; overflow:hidden; }}
+  .embed iframe {{ width:100%; height:760px; border:0; display:block; }}
 </style></head><body>
 
 <div class="hero"><div class="wrap">
   <span class="tag">勘境 · KineOne-WM · 反环境感知世界模型</span>
   <h1>KINEWORLD 能力证据台</h1>
   <p>基于 <b>Meta V-JEPA 2</b>（MIT / Apache-2.0，可商用）编码器构建的动作条件化、可规划、可反事实推演的 latent 世界模型。
-  本页聚合三条已落地的技术证据链，直接服务 <b>9/20 引航陪跑创业营</b> 与 <b>10/1 合肥国资</b> 两条申报通道。
-  全部证据 <b>可复现、开源、无需 GPU</b>。</p>
+  本页聚合已落地的技术证据链与可交互招牌，直接服务 <b>9/20 引航陪跑创业营</b> 与 <b>10/1 合肥国资</b> 两条申报通道。
+  架构与后训练证据 <b>可复现、开源、无需 GPU</b>；GPU 真实评测待设备运行（见第 10 支柱）。</p>
 </div></div>
 
 <div class="wrap">
@@ -248,6 +250,31 @@ html = f"""<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
   <div class="filing">
     <div class="fcard a"><h3>9/20 · 引航陪跑创业营</h3><p>提交申请。本证据台作为技术可行性佐证：原型已跑通真实 SOTA 特征端到端 + 反事实 + 后训练收敛。</p></div>
     <div class="fcard b"><h3>10/1 · 合肥国资 + 公司注册</h3><p>完成公司注册与国资申报。差异化定位（可规划/反事实 + 商用合规 + 单设备部署）对应国资关注的自主可控与落地成本。</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">9</span>可交互反事实招牌（评审肉眼见"想象替代未来"）</h2>
+  <p class="sub">真实 CounterfactualRollout(dim=16) 预计算 36 个 do(x)×arm 网格场景，PCA 投影到 2D；下方为自包含交互件——点 do(x)、拖 arm / horizon 滑块即可实时重绘轨迹与分歧。</p>
+  <div class="embed"><iframe src="counterfactual_interactive.html" title="KINEWORLD 可交互反事实推演"></iframe></div>
+  <p class="note">证据源 <code>counterfactual_interactive.py</code>（commit f70ae2c）：PCA 前两主成分解释率 30.6% / 17.3%，纯 JS 无依赖。
+  这是面向<b>评审 / 合作方</b>的招牌件——无需读论文即可直观理解"同一场景、换一个介入会发生什么"。生产形态换真实 V-JEPA 2 特征 + 私有权重，即物理反事实问答界面。</p>
+</section>
+
+<section>
+  <h2><span class="n">10</span>GPU 真实评测（KINE-Bench · 待用户设备运行）</h2>
+  <p class="sub">一键启动器已就绪：在用户 GPU 上跑 98 条真实片段，产出 KINE-TEMP-1 / MOT-1 / EVT-1 硬数字（编码器能力，V-JEPA 2 可跑；FUT/EMB/CAU 需 predict/intervene，按协议报 n/a 不伪造）。</p>
+  <div class="metrics">
+    <div class="metric"><div class="m-v bad">待运行</div><div class="m-k">KINE-TEMP-1（时序一致性）</div></div>
+    <div class="metric"><div class="m-v bad">待运行</div><div class="m-k">KINE-MOT-1（运动保真）</div></div>
+    <div class="metric"><div class="m-v bad">待运行</div><div class="m-k">KINE-EVT-1（事件定位，需真实标注）</div></div>
+  </div>
+  <div class="card">
+    <p class="sub">一行命令（用户 GPU 上执行）</p>
+    <p class="note"><code>python bench_gpu_launcher.py --data-dir &lt;视频文件夹&gt; --device cuda</code><br>
+    产物：<code>bench_report.json</code> + 自包含 <code>bench_report.html</code>（真实评测报告，运行后替换上方"待运行"）。
+    数据管线 <code>prep_bench_data.py</code> 把视频文件夹整理为 <code>raw/</code> + 启发式 <code>events.json</code>（事件帧占位，真实标注后 EVT-1 才可信）。
+    完整指南见 <code>BENCH_GPU.md</code>。</p>
   </div>
 </section>
 
