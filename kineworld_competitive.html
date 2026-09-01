@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KINEWORLD · 竞争力对标与路线图</title>
+<style>
+  :root { --ink:#0f172a; --mut:#64748b; --bd:#e2e8f0; --bg:#ffffff; --accent:#2563eb; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+         margin:0; background:#f1f5f9; color:var(--ink); padding:28px; line-height:1.55; }
+  .wrap { max-width:980px; margin:0 auto; }
+  h1 { font-size:23px; margin:0 0 4px; }
+  h2 { font-size:17px; margin:26px 0 12px; padding-left:10px; border-left:4px solid var(--accent); }
+  .lead { color:var(--mut); font-size:14px; margin:0 0 8px; }
+  .sub { color:var(--mut); font-size:13px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
+  .card { background:var(--bg); border:1px solid var(--bd); border-radius:12px; padding:14px 16px; }
+  .card .t { font-weight:700; font-size:14px; margin-bottom:4px; }
+  .card .d { font-size:12.5px; color:var(--mut); }
+  .card code { background:#f1f5f9; padding:1px 5px; border-radius:5px; font-size:11.5px; }
+  table { width:100%; border-collapse:collapse; background:var(--bg); border:1px solid var(--bd);
+          border-radius:12px; overflow:hidden; font-size:13.5px; }
+  th,td { text-align:left; padding:11px 13px; border-bottom:1px solid var(--bd); vertical-align:top; }
+  th { background:#f8fafc; color:var(--mut); font-weight:600; font-size:12.5px; }
+  tr:last-child td { border-bottom:none; }
+  .yes { color:#16a34a; font-weight:700; }
+  .no { color:#94a3b8; }
+  .tl { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+  .step { background:var(--bg); border:1px solid var(--bd); border-radius:12px; padding:14px 16px; position:relative; }
+  .step .ph { font-size:11px; color:var(--accent); font-weight:700; letter-spacing:.04em; }
+  .step .h { font-weight:700; margin:3px 0 5px; font-size:14px; }
+  .step .b { font-size:12.5px; color:var(--mut); }
+  .note { background:#fffbeb; border:1px solid #fde68a; border-radius:12px; padding:14px 16px;
+          font-size:13px; color:#92400e; }
+  .ok { background:#ecfdf5; border:1px solid #6ee7b7; border-radius:12px; padding:14px 16px; font-size:13px; color:#065f46; }
+  a { color:var(--accent); text-decoration:none; }
+  .pill { display:inline-block; background:#eff6ff; color:#1d4ed8; border-radius:999px; padding:2px 10px; font-size:12px; font-weight:600; margin-right:6px; }
+  footer { color:var(--mut); font-size:12px; margin-top:26px; text-align:center; }
+</style></head>
+<body><div class="wrap">
+
+  <h1>KINEWORLD（勘境 / KineOne-WM）· 竞争力对标与路线图</h1>
+  <p class="lead">动作条件化世界模型 + 反事实推演。对标合肥「白泽通境」类世界模型/评测基线，差异在"能规划、能反事实"，且基准可复现、可商用合规、单设备部署。</p>
+  <p class="sub">代码仓库：<a href="https://github.com/zoahdev/kine-jepa">zoahdev/kine-jepa</a> · <a href="https://github.com/zoahdev/kine-bench">zoahdev/kine-bench</a> · 壁垒边界见 <code>OPEN_SOURCE_BOUNDARY.md</code></p>
+
+  <h2>① 已落地能力（可核验证据）</h2>
+  <div class="cards">
+    <div class="card"><div class="t">SOTA 特征基准</div><div class="d">kine-bench 接 Meta <b>V-JEPA 2</b>（MIT / Apache-2.0 可商用），encoder 输出 <code>(B,8192,1024)</code>，grid 32×16×16。能力声明式接口，缺失能力报 n/a 不伪造。</div></div>
+    <div class="card"><div class="t">动作条件化 rollout</div><div class="d">ActionRollout 残差更新 + LatentPlanner(CEM)。CPU 规划：目标距离 <b>152 → 6.4</b>。多动作空间（连续+离散）、latent_clip 长程稳定、V-JEPA2 1024-d 对齐。</div></div>
+    <div class="card"><div class="t">因果介入</div><div class="d">causal.InterventionHead：4 类离散 <code>do(x)</code>（无介入/撤支撑/断接触/随机），作为 latent 场景条件器。</div></div>
+    <div class="card"><div class="t">反事实推演</div><div class="d">CounterfactualRollout 接 causal + rollout。4 测试全绿；同臂指令只换 do(x)，终态分歧 do1=0.056/do2=0.051/do3=0.064。</div></div>
+    <div class="card"><div class="t">可视化 Demo</div><div class="d">counterfactual_demo.html：四条 do(x) 未来轨迹 PCA 投影 + 逐步分歧曲线（浅色主题单文件）。</div></div>
+    <div class="card"><div class="t">真实特征端到端 ✅</div><div class="d">本地 1.3GB V-JEPA 2 权重直接编码 → <code>(1,1024,1024)</code> 真实特征 → 投影 → 反事实推演跑在真实 1024-d 特征上；no-op vs 撤支撑 分歧 <b>0.0623</b>（CPU 32.8s）。</div></div>
+  </div>
+
+  <h2>② 差异化维度（vs 通用世界模型 / 评测基线）</h2>
+  <table>
+    <tr><th>维度</th><th>KINEWORLD</th><th>白泽类基线（编码器+评测）</th><th>优势</th></tr>
+    <tr><td>核心能力</td><td>描述 + <span class="yes">规划</span> + <span class="yes">反事实</span></td><td>主要描述/预测已发生画面</td><td>能"想象替代未来"，不只是预测默认</td></tr>
+    <tr><td>动作条件</td><td><span class="yes">是</span>（连续臂 + 离散 do(x) 混合动作空间）</td><td class="no">通常无</span></td><td>同一世界模型驱动真实 embodiment</td></tr>
+    <tr><td>基准可复现</td><td><span class="yes">是</span>，用真实 SOTA 权重、数字可核验</td><td class="no">多为黑盒自报</td><td>评审/合作方可独立复现</td></tr>
+    <tr><td>商用合规</td><td>V-JEPA 2 MIT/Apache-2.0；<span class="yes">规避</span> V-JEPA 1 CC-BY-NC</td><td class="no">依赖项需逐案核查</td><td>可商用，无授权雷区</td></tr>
+    <tr><td>部署成本</td><td>冻结编码器 + 微型 predictor，<span class="yes">12GB 笔记本可跑</span></td><td class="no">常需云 GPU</td><td>单设备、低边际成本</td></tr>
+    <tr><td>壁垒策略</td><td>接口/基准开源扩生态；权重/标注/配方闭源守壁垒</td><td class="no">全闭源，生态难建</td><td>开源获信任 + 闭源守核心</td></tr>
+  </table>
+
+  <h2>③ 技术壁垒与开源边界</h2>
+  <div class="ok"><b>开源（扩生态/可复现）：</b>世界模型接口与架构（ActionRollout / LatentPlanner / MultiActionEmbedder / VJEPA2AlignedRollout / CounterfactualRollout）、KINE-Bench 评测接口与数字、差异化定位文档。
+  <br><b>闭源（守壁垒）：</b>特定 embodiment 的训练权重、轨迹数据的动作标注、后训练配方（课程/数据混合/ViT-g 教师蒸馏）。这些绝不进公开仓库。</div>
+
+  <h2>④ 路线图（到"真实视频反事实问答"）</h2>
+  <div class="tl">
+    <div class="step"><div class="ph">已落地</div><div class="h">架构全链路</div><div class="b">V-JEPA 2 对齐 + 动作条件化 rollout + 因果介入 + 反事实推演 + 合成 latent Demo。接口与基准开源。</div></div>
+    <div class="step"><div class="ph">本轮已完成</div><div class="h">真实特征端到端</div><div class="b">本地 1.3GB V-JEPA 2 权重直接编码 → <code>(1,1024,1024)</code> 真实特征 → 投影 → 反事实推演跑在真实 1024-d 特征上（no-op vs 撤支撑 分歧 <b>0.0623</b>，CPU 32.8s）。证明管线直接吃 SOTA 特征。</div></div>
+    <div class="step"><div class="ph">需 GPU</div><div class="h">真实评测 + 后训练</div><div class="b">98 条真实片段 kine-bench 评测；真实轨迹 teacher-forcing 后训练（私有权重）→ rollout 物理可信。</div></div>
+    <div class="step"><div class="ph">产品化</div><div class="h">真实视频反事实问答</div><div class="b">"如果当时撤支撑，场景会怎样"——对标白泽的核心差异点落地为可演示产品。</div></div>
+  </div>
+
+  <h2>⑤ 当前边界（诚实声明）</h2>
+  <div class="note">当前 rollout 的 predictor 为<b>随机初始化（无训练权重）</b>，因此合成/真实特征上的"推演数值"是<b>架构正确性证明</b>，而非物理预测。物理可信需真实轨迹后训练（闭源配方）。这恰是壁垒所在：接口人人可建，物理预测能力靠数据+配方。所有对外数字均附可核验来源（GitHub 提交 / 测试输出）。</div>
+
+  <h2>⑥ 申报节点</h2>
+  <div class="cards">
+    <div class="card"><div class="t"><span class="pill">9/20</span>引航陪跑创业营</div><div class="d">申请截止。本页 + kine-jepa/kine-bench 仓库即技术证据包。</div></div>
+    <div class="card"><div class="t"><span class="pill">10/1</span>合肥国资 + 公司注册</div><div class="d">国庆前完成公司注册；国资申报同步推进，差异化定位为核心材料。</div></div>
+  </div>
+
+  <footer>KINEWORLD · 勘境 · 生成于 2026-09-01 · 所有能力声明均可在 zoahdev/kine-jepa 与 zoahdev/kine-bench 核验</footer>
+</div></body></html>
