@@ -13,7 +13,9 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from kineworld_jepa.rollout import ActionRollout, LatentPlanner  # noqa: E402
+from kineworld_jepa.rollout import (  # noqa: E402
+    ActionRollout, LatentPlanner, MultiActionEmbedder, VJEPA2AlignedRollout,
+)
 
 PASSED = []
 
@@ -71,7 +73,9 @@ def test_planner_reaches_goal():
         other = torch.randn(1, H, action_dim)
         base = (m(lat0, other)[-1].mean(1) - goal.mean(1)).pow(2).sum().item()
 
-    best, loss = planner.plan(lat0, iters=20, candidates=400, device="cpu", seed=3)
+    # CPU-friendly load: 64 candidates x 8 iters (~140s on a laptop); the
+    # planner still must beat the off-target baseline by a wide margin.
+    best, loss = planner.plan(lat0, iters=8, candidates=64, device="cpu", seed=3)
     # The planner must beat the off-target baseline by a wide margin: at random
     # init the dynamics are a narrow function of the action, so CEM recovers
     # the *right neighbourhood* of actions (30x closer) rather than the exact
@@ -81,8 +85,75 @@ def test_planner_reaches_goal():
           f"baseline_offtarget_d2={base:.2f} planned_d2={loss:.2f}")
 
 
+def test_multi_action_space():
+    """Heterogeneous action: continuous arm+grip commands mixed with a discrete
+    do(x) intervention, fed as a dict of streams into ActionRollout."""
+    torch.manual_seed(4)
+    dim, V, H = 32, 24, 5
+    mae = MultiActionEmbedder(
+        {"arm": ("continuous", 7), "grip": ("continuous", 1),
+         "intervene": ("discrete", 4)}, dim=dim)
+    m = ActionRollout(dim, depth=3, heads=4, action_dim=7, style="add",
+                      action_embed=mae)
+    m.eval()
+    lat = torch.randn(2, V, dim)
+    acts = {"arm": torch.randn(2, H, 7), "grip": torch.randn(2, H, 1),
+            "intervene": torch.randint(0, 4, (2, H))}
+    out = m(lat, acts, horizon=H)
+    assert len(out) == H and out[0].shape == (2, V, dim), out[0].shape
+    check("test_multi_action_space", True, f"{len(out)} steps x {tuple(out[0].shape)}")
+
+
+def test_long_horizon_stable():
+    """Recursive rollout over many steps must not explode; latent_clip fixes
+    the per-token norm so every token norm stays <= clip."""
+    torch.manual_seed(5)
+    dim, V, H, clip = 32, 16, 40, 5.0
+    m = ActionRollout(dim, depth=3, heads=4, action_dim=4, style="add",
+                      latent_clip=clip)
+    m.eval()
+    lat = torch.randn(1, V, dim)
+    acts = torch.randn(1, H, 4)
+    out = m(lat, acts, horizon=H)
+    max_tok_norm = max(o.norm(dim=-1).max().item() for o in out)
+    check("test_long_horizon_stable", max_tok_norm <= clip + 1e-3,
+          f"max_token_norm={max_tok_norm:.2f} (clip={clip})")
+
+
+def test_vjepa2_align():
+    """Rollout in V-JEPA 2's 1024-d space: (B, 8192, 1024) encoder output is
+    projected and rolled forward, dim stays 1024 (aligned with SOTA features)."""
+    torch.manual_seed(6)
+    out_tokens, dim, H = 256, 1024, 4
+    m = VJEPA2AlignedRollout(out_tokens=out_tokens, dim=dim, depth=2, heads=4,
+                             action_dim=8, style="add")
+    m.eval()
+    z = torch.randn(1, 8192, dim)            # V-JEPA 2 encoder output shape
+    acts = torch.randn(1, H, 8)
+    out = m(z, acts, horizon=H)
+    ok = len(out) == H and out[0].shape == (1, out_tokens, dim)
+    check("test_vjepa2_align", ok, f"proj->{(1, out_tokens, dim)}; dim={dim}==V-JEPA2")
+
+
+def test_training_loss():
+    """Teacher-forced regression returns a finite scalar loss for post-training."""
+    torch.manual_seed(7)
+    dim, V, action_dim, H = 32, 16, 4, 5
+    m = ActionRollout(dim, depth=3, heads=4, action_dim=action_dim)
+    lat0 = torch.randn(1, V, dim)
+    acts = torch.randn(1, H, action_dim)
+    targets = [torch.randn(1, V, dim) for _ in range(H)]
+    loss = m.training_loss(lat0, acts, targets)
+    check("test_training_loss", torch.isfinite(loss) and loss.dim() == 0,
+          f"loss={loss.item():.4f}")
+
+
 if __name__ == "__main__":
     test_rollout_shape()
     test_rollout_cross_style()
     test_planner_reaches_goal()
+    test_multi_action_space()
+    test_long_horizon_stable()
+    test_vjepa2_align()
+    test_training_loss()
     print(f"\nall {len(PASSED)} rollout tests passed")
