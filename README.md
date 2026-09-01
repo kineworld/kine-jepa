@@ -1,76 +1,82 @@
-# KineOne-WM-Latent 0.1（历史仓库：kine-jepa）
+# KineOne-WM · 反环境感知世界模型（底座仓库 kine-jepa）
 
-勘境（Kineworld）的 KineOne-WM 潜在表征底座：对 V-JEPA（arXiv:2404.08471）的 **clean-room 复现与改进**。
+勘境（Kineworld）的 **KineOne-WM** —— 基于 Meta **V-JEPA 2**（MIT / Apache-2.0，可商用）编码器的
+**动作条件化、可规划、可反事实推演**的 latent 世界模型。本仓库是其开源底座：架构、接口、基准与
+证明脚本全公开、可复现、无需 GPU；训练权重、轨迹动作标注与后训练配方闭源（见下方边界）。
 
-> 正式模型名为 **KineOne-WM**。`KINE-JEPA` 仅保留为 KINE-EXP-001 的历史架构代号；本项目与第三方榜单中既有的 `KineWorld` 条目无关。
+> 正式模型名为 **KineOne-WM**。`KINE-JEPA` 仅保留为历史架构代号。本项目与第三方榜单中既有的 `KineWorld` 条目无关。
+> Implementation inspired by V-JEPA 2-AC (arXiv:2506.09985, MIT) and KINE-EXP-002 causal.py; all code original.
 
-> Implementation inspired by the V-JEPA paper (arXiv:2404.08471); all code original.
-> 未复制任何 V-JEPA 官方代码与权重（其为 CC-BY-NC-4.0，禁止商用）。
+## 它解决什么
 
-## 这是什么
+纯编码器/基准（如白泽类）只能"看懂"当前画面。KineOne-WM 额外能：
 
-JEPA（联合嵌入预测架构）视频自监督模型：
+- **预测未来**：给定场景与连续动作指令，rollout 未来 latent（动作条件化世界模型）；
+- **规划**：LatentPlanner（CEM 无梯度）在 latent 空间搜动作序列抵达目标状态；
+- **反事实推演**：离散 `do(x)`（撤支撑 / 断接触 / 随机）经因果干预头每步重条件化 latent，
+  回答"如果当时撤了支撑会怎样"——这是白泽类纯编码器不具备的能力。
 
-- **编码器**：ViT-S/patch16，3D tubelet（2×16×16）把视频切成 token，只编码未被掩码的可见 token
-- **掩码**：时空多块随机掩码（比例按余弦从 0.9 → 0.75 退火）
-- **预测器**：小型 Transformer，在目标编码器的表示空间中预测被掩码区域的特征
-- **目标编码器**：编码器的 EMA 副本，无梯度
-- **损失**：预测特征与归一化目标特征之间的 L1
+## 架构（开源）
 
-## 硬件约束
+```
+kineworld_jepa/
+  vit.py         3D tubelet ViT 编码器（clean-room）
+  causal.py      因果干预头 InterventionHead(do(x)) + CausalKineJEPA（接口公开）
+  rollout.py     ActionRollout（残差更新 + latent_clip 长程稳定）
+                 MultiActionEmbedder（连续+离散混合多动作空间）
+                 LatentPlanner（CEM 无梯度规划）
+                 VJEPA2Projector（8192→256 token 对齐 V-JEPA 2 的 1024-d）
+  counterfactual.py  CounterfactualRollout(ActionRollout 子类)
+                     do(x) 重条件化 latent + arm 动作 token，因子分解无重复条件
+tests/           test_core / test_rollout / test_counterfactual / test_posttrain（CPU 全绿）
+```
 
-单张 RTX 5070 Ti（12GB VRAM）。bf16 混合精度，batch 8，16 帧 224×224。
+编码器对齐基线 = **Meta V-JEPA 2**（ViT-L，1.3GB 权重，MIT/Apache-2.0 可商用）；
+本地权重离线加载，输出真实 `(B, 1024, 1024)` 特征，直接进 rollout 空间。
 
-## 用法
+## 证据（全开源、可复现、CPU）
+
+| 证据 | 脚本 / 产物 | 关键数字 |
+|---|---|---|
+| 真实特征端到端 | `real_feature_smoke.py` | 真实 V-JEPA 2 编码 → 反事实分歧 0.0623 |
+| 反事实推演 | `counterfactual.py` + `counterfactual_demo.html` | do(x) 分歧可测、确定性可复现 |
+| 后训练配方（合成） | `posttrain.py` + `posttrain_demo.html` | rollout MSE ↓63.7%（6.41→2.33） |
+| 后训练配方（真实特征） | `real_feature_posttrain.py` + `real_feature_posttrain.html` | 留一 rollout ↓30%（0.0815→0.0573） |
+| **统一能力证据台** | `build_deck.py` → `kineworld_capability_deck.html` | 8 节聚合，服务申报 |
+
+复现（CPU）：
 
 ```bash
 git clone https://github.com/zoahdev/kine-jepa.git
 cd kine-jepa
-python -m venv .venv
-.venv/Scripts/pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
-.venv/Scripts/pip install -r requirements.txt
-
-# 冒烟测试（合成数据，无需视频）
-.venv/Scripts/python -m kineworld_jepa.train --smoke --steps 30
-
-# 正式训练（数据由 ../kine-datapipe 产出）
-.venv/Scripts/python -m kineworld_jepa.train --data-dir ../kine-datapipe/data/clips --steps 20000
+python -m venv .venv && .venv/Scripts/pip install torch
+python build_deck.py            # 重算后训练+反事实，生成 kineworld_capability_deck.html
+python posttrain.py             # 合成动力学后训练证明
+python real_feature_posttrain.py # 真实特征后训练证明（需本地 V-JEPA 2 权重）
+python -m pytest tests/         # 回归测试
 ```
 
-实验日志（jsonl 指标 + 配置 + 摘要 + 检查点）写入 `experiments/KINE-EXP-001/run-*/`。
+## 开源 / 闭源边界（护城河）
 
-## 公开检查点
+| 类别 | 内容 | 边界 |
+|---|---|---|
+| 架构 / 接口 | CounterfactualRollout、ActionRollout、MultiActionEmbedder、InterventionHead、KINE-Bench 接口 | **开源** |
+| 基准 | 评测协议；缺能力报 n/a 不伪造的诚实约定 | **开源** |
+| 权重 | 特定本体后训练权重、动作标注 | **闭源** |
+| 后训练配方 | 课程 / 数据配比 / ViT-g teacher 蒸馏 | **闭源** |
 
-- [Release `exp001-step5000-weights`](https://github.com/zoahdev/kine-jepa/releases/tag/exp001-step5000-weights)：KINE-EXP-001 第 5000 步中间检查点（fp16 在线编码器，112.6 MB，MIT），可被 kine-bench 的 `load_model` 直接加载。
+> 公开的是"能想象替代未来"的方法与可复核证据；壁垒在私有的、针对具体本体的训练产物与配方。
 
-## 测试与评测
+## 申报节点
 
-```bash
-# 核心模块单元测试（CPU 即可，无需 GPU）
-.venv/Scripts/python tests/test_core.py
-```
+- **9/20 引航陪跑创业营**：提交申请，本证据台作技术可行性佐证。
+- **10/1 合肥国资 + 公司注册**：差异化定位（可规划/反事实 + 商用合规 + 单设备 ~12GB 部署）。
 
-训练产出的检查点用 **KINE-Bench** 评测（时序理解 / 运动幅度 / 未来预测保真度，单卡可复核）：
-[github.com/zoahdev/kine-bench](https://github.com/zoahdev/kine-bench)
+## 诚实边界
 
-## 结构
-
-```
-kineworld_jepa/
-  vit.py       3D tubelet ViT 编码器
-  masking.py   时空多块掩码
-  jepa.py      KineOne-WM-Latent（编码器 + EMA 目标编码器 + 预测器）
-  causal.py    因果干预头（do(x) token）+ CausalKineJEPA（接口公开，训练产物闭源）
-  rollout.py   动作条件化世界模型（ActionEmbedder / ActionRollout / LatentPlanner，CEM）
-  dataset.py   kine-datapipe 视频片段数据集 + 合成冒烟数据
-  train.py     单卡训练循环与实验日志
-```
-
-> `causal.py` 与 `rollout.py` 公开的是**接口与算法结构**；其依赖的具体训练权重、轨迹动作标注与后训练配方属于技术壁垒，闭源（见 kine-bench 的 `OPEN_SOURCE_BOUNDARY.md`）。
-
-## 路线图
-
-复现（0-8 周）→ 改进（物理先验损失 / 动作条件化 / 长时程记忆压缩，均做消融并公开）→ 机器人"想象引擎"产品化。
+当前 rollout / counterfactual 在**随机初始化**与**合成动力学**上验证（架构 + moat recipe 证明），
+真实特征后训练为**概念验证（21 对）**，非大规模物理预测。生产形态：真实轨迹 + 动作标注 + 私有权重/配方。
+所有指标均来自本仓库可复现脚本，无外部断言。
 
 ## 许可证
 
