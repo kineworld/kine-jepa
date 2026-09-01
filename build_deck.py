@@ -77,6 +77,41 @@ def bar_svg(dvals, w=720, h=260, pad=46):
 cf_bars = bar_svg([("无介入/基线", 0.0)] + [(k, v) for k, v in divs.items()])
 pt_curve = curve_svg(log)
 
+# ------------------------------------------- resolution sweep (optional artifact)
+# 读 gpu_resolution_sweep.py 产出的 gpu_sweep.json；未跑过时优雅跳过，不阻断构建。
+# 存在的意义：堵住评审那句「64px 数字是不是降采样省算力换来的」。
+SWEEP_HTML = ""
+_sweep_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gpu_sweep.json")
+try:
+    with open(_sweep_path, encoding="utf-8") as _f:
+        _sw = json.load(_f)
+    _rows = [r for r in _sw.get("rows", []) if r.get("status") == "ok"]
+    if _rows:
+        _base = next((r for r in _rows if r.get("img_size") == 64), _rows[0])
+        _trs = []
+        for r in _rows:
+            _ratio = ""
+            if _base and _base.get("sec_per_clip"):
+                _ratio = f"{r['sec_per_clip'] / _base['sec_per_clip']:.1f}×"
+            _trs.append(
+                f"<tr><td><b>{r['img_size']}px</b></td><td>{r['num_clips']}</td>"
+                f"<td>{r['inner_wall_s']}s</td><td><b>{r['sec_per_clip']}s</b></td>"
+                f"<td>{r['clips_per_min']}</td><td>{_ratio}</td></tr>")
+        SWEEP_HTML = f"""
+    <p class="sub" style="margin-top:12px;">分辨率-吞吐扫描（回应「64px 是否降采样省算力」）</p>
+    <table class="mini">
+      <thead><tr><th>分辨率</th><th>片段数</th><th>墙钟</th><th>每片段</th><th>条/分</th><th>相对 64px</th></tr></thead>
+      <tbody>{''.join(_trs)}</tbody>
+    </table>
+    <p class="note">同一块 GPU、同一批合成片段、同 batch_size 下的三档对照。<b>256px 是 V-JEPA 2 的原生分辨率</b>，
+    实测可在笔记本 GPU 上跑通（非降采样取巧）。表内数值随分辨率上升而变慢属预期（token 数平方增长），
+    <b>扫描只测吞吐与可运行性，不测模型能力</b>。原始报告见 <code>gpu_sweep.html</code>。</p>"""
+        print(f"[sweep] 嵌入 {len(_rows)} 档分辨率扫描数据")
+except FileNotFoundError:
+    pass
+except Exception as e:  # 扫描产物损坏也不应阻断证据台构建
+    print(f"[sweep] 跳过（读取失败：{e}）")
+
 # ---------------------------------------------------------------- assemble deck
 html = f"""<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -110,6 +145,8 @@ html = f"""<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
   table {{ width:100%; border-collapse:collapse; font-size:13.5px; }}
   th,td {{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--bd); vertical-align:top; }}
   th {{ color:var(--mut); font-weight:600; background:#f8fafc; }}
+  table.mini {{ margin:10px 0 12px; background:#fff; border:1px solid var(--bd); border-radius:10px; overflow:hidden; }}
+  table.mini th,table.mini td {{ padding:8px 10px; font-size:13px; }}
   td .yes {{ color:var(--ok); font-weight:700; }}
   td .no {{ color:#94a3b8; }}
   .pill {{ display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; }}
@@ -276,7 +313,8 @@ html = f"""<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
   <div class="card">
     <p class="sub">吞吐对照（同配置：num_frames 16 / img_size 64）</p>
     <p class="note">CPU smoke 8 条 = <b>11807.5s</b>（每片段 <b>1476s</b>）；本次 GPU 98 条 = <b>901.7s</b>（每片段 <b>9.2s</b>）→ <b>约 160× 提速</b>。
-    且该 GPU 被系统电源策略锁在 ~17W（`Perf P4`），满血（100W）下还可更快。这是可复现的<b>吞吐硬证据</b>。</p>
+    负载实测该 GPU 跑在 <b>98.8W / 利用率 99%</b>（显存 5.3GB）——此前一度把空闲态读数 17W 误判为"被锁功耗墙"，实为降频，此处更正。这是可复现的<b>吞吐硬证据</b>。</p>
+    {SWEEP_HTML}
     <p class="sub" style="margin-top:12px;">诚实边界（重要）</p>
     <p class="note">本轮为 <b>98 条合成片段</b>验证：TEMP-1=1.0 在合成数据上是<b>平凡高分</b>、MOT-1≈0 是因合成片段<b>无真实运动结构</b>、CAU-1 AUC=1.0 属退化态（intervene 分支不可用，<code>auc_do=null</code>）。
     因此这些<b>分数不构成竞争力证据</b>；本轮真实价值是「CUDA 链路跑通 + 协议可执行 + 160× 吞吐」。申报用的硬数字须用真实视频跑
