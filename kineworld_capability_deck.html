@@ -216,6 +216,7 @@
     <p class="note">同一块 GPU、同一批合成片段、同 batch_size 下的三档对照。<b>256px 是 V-JEPA 2 的原生分辨率</b>，
     实测可在笔记本 GPU 上跑通（非降采样取巧）。表内数值随分辨率上升而变慢属预期（token 数平方增长），
     <b>扫描只测吞吐与可运行性，不测模型能力</b>。原始报告见 <code>gpu_sweep.html</code>。</p>
+    
     <p class="sub" style="margin-top:12px;">诚实边界（重要）</p>
     <p class="note">本轮为 <b>98 条合成片段</b>验证：TEMP-1=1.0 在合成数据上是<b>平凡高分</b>、MOT-1≈0 是因合成片段<b>无真实运动结构</b>、CAU-1 AUC=1.0 属退化态（intervene 分支不可用，<code>auc_do=null</code>）。
     因此这些<b>分数不构成竞争力证据</b>；本轮真实价值是「CUDA 链路跑通 + 协议可执行 + 160× 吞吐」。申报用的硬数字须用真实视频跑

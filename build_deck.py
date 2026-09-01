@@ -112,6 +112,35 @@ except FileNotFoundError:
 except Exception as e:  # 扫描产物损坏也不应阻断证据台构建
     print(f"[sweep] 跳过（读取失败：{e}）")
 
+# --------------------------------------- native-resolution full run (optional)
+# 读 bench_report_256.json（原生 256px 全量 98 条）；未跑过时优雅跳过。
+# 与 64px 全量（901.7s）构成「降采样 vs 原生」的双锚点吞吐证据。
+BENCH256_HTML = ""
+_b256_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bench_report_256.json")
+try:
+    with open(_b256_path, encoding="utf-8") as _f:
+        _b = json.load(_f)
+    _wall = float(_b.get("wall_s", 0))
+    _n = int(_b.get("num_clips", 0) or 0)
+    if _wall > 0 and _n > 0:
+        _spc = _wall / _n
+        _c64 = 901.7 / 98.0  # 64px 全量每片段（bench_report.json）
+        _ratio = _spc / _c64 if _c64 else 0
+        BENCH256_HTML = f"""
+    <p class="sub" style="margin-top:12px;">原生分辨率全量（256px · V-JEPA 2 原生输入尺寸）</p>
+    <div class="metrics">
+      <div class="metric"><div class="m-v ok">{_wall:.1f}s</div><div class="m-k">256px 全量墙钟（{_n} 条，含模型加载）</div></div>
+      <div class="metric"><div class="m-v ok">{_spc:.1f}s</div><div class="m-k">每片段（64px 全量为 {_c64:.1f}s，比率 {_ratio:.1f}×）</div></div>
+      <div class="metric"><div class="m-v ok">{60.0 * _n / _wall:.1f}</div><div class="m-k">条/分（原生分辨率）</div></div>
+    </div>
+    <p class="note">与 64px 全量（bench_report.json）构成双锚点：同协议同数据，仅分辨率不同。
+    证明<b>原生 256px 无需降采样即可在本机全量跑完</b>；吞吐数字可复现（命令见 <code>BENCH_GPU.md</code>）。</p>"""
+        print(f"[b256] 嵌入 256px 全量数据（{_n} 条 / {_wall:.1f}s）")
+except FileNotFoundError:
+    pass
+except Exception as e:
+    print(f"[b256] 跳过（读取失败：{e}）")
+
 # ---------------------------------------------------------------- assemble deck
 html = f"""<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -315,6 +344,7 @@ html = f"""<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
     <p class="note">CPU smoke 8 条 = <b>11807.5s</b>（每片段 <b>1476s</b>）；本次 GPU 98 条 = <b>901.7s</b>（每片段 <b>9.2s</b>）→ <b>约 160× 提速</b>。
     负载实测该 GPU 跑在 <b>98.8W / 利用率 99%</b>（显存 5.3GB）——此前一度把空闲态读数 17W 误判为"被锁功耗墙"，实为降频，此处更正。这是可复现的<b>吞吐硬证据</b>。</p>
     {SWEEP_HTML}
+    {BENCH256_HTML}
     <p class="sub" style="margin-top:12px;">诚实边界（重要）</p>
     <p class="note">本轮为 <b>98 条合成片段</b>验证：TEMP-1=1.0 在合成数据上是<b>平凡高分</b>、MOT-1≈0 是因合成片段<b>无真实运动结构</b>、CAU-1 AUC=1.0 属退化态（intervene 分支不可用，<code>auc_do=null</code>）。
     因此这些<b>分数不构成竞争力证据</b>；本轮真实价值是「CUDA 链路跑通 + 协议可执行 + 160× 吞吐」。申报用的硬数字须用真实视频跑
