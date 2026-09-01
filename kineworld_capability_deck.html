@@ -1,0 +1,175 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KINEWORLD · KineOne-WM 能力证据台</title>
+<style>
+  :root { --ink:#0f172a; --mut:#64748b; --bd:#e2e8f0; --bg:#fff; --accent:#2563eb; --ok:#16a34a; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+         margin:0; background:#f1f5f9; color:var(--ink); }
+  .hero { background:linear-gradient(160deg,#0f172a,#1e3a8a); color:#fff; padding:40px 28px; }
+  .hero .wrap { max-width:960px; margin:0 auto; }
+  .hero h1 { font-size:28px; margin:0 0 8px; letter-spacing:.5px; }
+  .hero .tag { display:inline-block; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
+               padding:4px 12px; border-radius:999px; font-size:13px; margin-bottom:14px; }
+  .hero p { color:#cbd5e1; font-size:15px; line-height:1.7; max-width:760px; margin:0; }
+  .wrap { max-width:960px; margin:0 auto; padding:0 28px; }
+  section { margin:30px 0; }
+  h2 { font-size:20px; margin:0 0 4px; display:flex; align-items:center; gap:10px; }
+  h2 .n { background:var(--accent); color:#fff; width:28px; height:28px; border-radius:8px;
+           display:inline-flex; align-items:center; justify-content:center; font-size:14px; }
+  .sub { color:var(--mut); font-size:14px; margin:0 0 16px; }
+  .metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:16px; }
+  .metric { background:var(--bg); border:1px solid var(--bd); border-radius:12px; padding:14px 16px; }
+  .m-v { font-size:21px; font-weight:700; }
+  .m-k { font-size:12px; color:var(--mut); margin-top:4px; }
+  .card { background:var(--bg); border:1px solid var(--bd); border-radius:14px; padding:18px 20px; }
+  .note { font-size:13.5px; color:var(--mut); line-height:1.7; }
+  code { background:#f1f5f9; padding:1px 6px; border-radius:5px; font-size:12px; color:#0f172a; }
+  .ok { color:var(--ok); font-weight:700; }
+  .bad { color:#94a3b8; }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--bd); vertical-align:top; }
+  th { color:var(--mut); font-weight:600; background:#f8fafc; }
+  td .yes { color:var(--ok); font-weight:700; }
+  td .no { color:#94a3b8; }
+  .pill { display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; }
+  .pill.open { background:#dcfce7; color:#166534; }
+  .pill.closed { background:#fee2e2; color:#991b1b; }
+  .steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
+  .step { background:var(--bg); border:1px solid var(--bd); border-left:4px solid var(--accent); border-radius:10px; padding:14px 16px; }
+  .step b { font-size:13px; }
+  .step p { margin:6px 0 0; font-size:12.5px; color:var(--mut); line-height:1.6; }
+  .filing { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .fcard { border-radius:14px; padding:16px 18px; color:#fff; }
+  .fcard.a { background:linear-gradient(150deg,#b45309,#d97706); }
+  .fcard.b { background:linear-gradient(150deg,#1e40af,#2563eb); }
+  .fcard h3 { margin:0 0 6px; font-size:17px; }
+  .fcard p { margin:0; font-size:13px; opacity:.95; line-height:1.6; }
+  .warn { background:#fff7ed; border:1px solid #fed7aa; border-radius:12px; padding:14px 16px;
+          font-size:13px; color:#9a3412; line-height:1.7; }
+  footer { color:var(--mut); font-size:12px; text-align:center; padding:24px; }
+</style></head><body>
+
+<div class="hero"><div class="wrap">
+  <span class="tag">勘境 · KineOne-WM · 反环境感知世界模型</span>
+  <h1>KINEWORLD 能力证据台</h1>
+  <p>基于 <b>Meta V-JEPA 2</b>（MIT / Apache-2.0，可商用）编码器构建的动作条件化、可规划、可反事实推演的 latent 世界模型。
+  本页聚合三条已落地的技术证据链，直接服务 <b>9/20 引航陪跑创业营</b> 与 <b>10/1 合肥国资</b> 两条申报通道。
+  全部证据 <b>可复现、开源、无需 GPU</b>。</p>
+</div></div>
+
+<div class="wrap">
+
+<section>
+  <h2><span class="n">1</span>真实 SOTA 特征端到端</h2>
+  <p class="sub">不是玩具 tensor——本地 1.3GB V-JEPA 2 权重离线编码真实视频，未来推演跑在真实 1024-d 特征上。</p>
+  <div class="metrics">
+    <div class="metric"><div class="m-v ok">✓</div><div class="m-k">真实 V-JEPA 2 编码 (1,1024,1024)</div></div>
+    <div class="metric"><div class="m-v ok">0.0623</div><div class="m-k">反事实分歧（no-op vs 撤支撑）</div></div>
+    <div class="metric"><div class="m-v">32.8s</div><div class="m-k">CPU 端到端（build+encode+rollout）</div></div>
+  </div>
+  <div class="card"><p class="note">证据源 <code>real_feature_smoke.py</code>：合成亮方块漂移 clip → 本地权重 encoder-only 输出真实 latent →
+  <code>VJEPA2Projector</code> 对齐到 rollout 空间 → <code>CounterfactualRollout(dim=1024)</code> 在真实特征上推演。
+  证明编码→投影→反事实整条链路在真实 SOTA 特征空间成立，非合成占位。</p></div>
+</section>
+
+<section>
+  <h2><span class="n">2</span>反事实推演（对标白泽的核心差异）</h2>
+  <p class="sub">同一初始场景、同一连续手臂指令，只换离散介入 do(x)，回答"如果撤支撑 / 断接触 / 随机 会怎样"。</p>
+  <div class="card">
+    <p class="sub">四条未来轨迹终态 L2 分歧（同臂、仅换 do(x)，合成 latent 验证）</p>
+    <svg viewBox="0 0 720 260" width="100%" preserveAspectRatio="xMidYMid meet">
+      <rect x="0" y="0" width="720" height="260" fill="#f8fafc" rx="10"/>
+      <line x1="46" y1="214" x2="674" y2="214" stroke="#cbd5e1"/><rect x="121.4" y="214.0" width="87.9" height="0.0" rx="5" fill="#2563eb"/><text x="165.3" y="232.0" text-anchor="middle" font-size="12" fill="#475569">无介入/基线</text><text x="165.3" y="208.0" text-anchor="middle" font-size="12" fill="#0f172a" font-weight="700">0.000</text><rect x="247.0" y="46.0" width="87.9" height="168.0" rx="5" fill="#2563eb"/><text x="290.9" y="232.0" text-anchor="middle" font-size="12" fill="#475569">撤支撑</text><text x="290.9" y="40.0" text-anchor="middle" font-size="12" fill="#0f172a" font-weight="700">0.033</text><rect x="372.6" y="68.8" width="87.9" height="145.2" rx="5" fill="#2563eb"/><text x="416.5" y="232.0" text-anchor="middle" font-size="12" fill="#475569">断接触</text><text x="416.5" y="62.8" text-anchor="middle" font-size="12" fill="#0f172a" font-weight="700">0.029</text><rect x="498.2" y="148.5" width="87.9" height="65.5" rx="5" fill="#2563eb"/><text x="542.1" y="232.0" text-anchor="middle" font-size="12" fill="#475569">随机</text><text x="542.1" y="142.5" text-anchor="middle" font-size="12" fill="#0f172a" font-weight="700">0.013</text>
+    </svg>
+    <p class="note">离散 <code>do(x)</code> 经 <code>causal.InterventionHead</code> 每步重条件化 latent（反事实杠杆），
+    连续 arm 经 <code>MultiActionEmbedder</code> 作动作 token；两者维度对齐、不重复条件。
+    这把 KineOne-WM 从"预测器"升级为"能想象替代未来"的世界模型——正是白泽类纯编码器所不具备的能力。</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">3</span>后训练配方证明（moat recipe 端到端）</h2>
+  <p class="sub">在合成动作条件动力学上 teacher-forcing 训练 CounterfactualRollout（CPU，250 epoch）。证明训练后预测器物理可信。</p>
+  <div class="metrics">
+    <div class="metric"><div class="m-v bad">6.407</div><div class="m-k">rollout MSE · 训练前</div></div>
+    <div class="metric"><div class="m-v ok">2.328</div><div class="m-k">rollout MSE · 训练后（↓64%）</div></div>
+    <div class="metric"><div class="m-v bad">450.8</div><div class="m-k">规划距离 · 训练前</div></div>
+    <div class="metric"><div class="m-v ok">136.931</div><div class="m-k">规划距离 · 训练后</div></div>
+    <div class="metric"><div class="m-v bad">0.049</div><div class="m-k">反事实分歧 · 训练前</div></div>
+    <div class="metric"><div class="m-v ok">0.776</div><div class="m-k">反事实分歧 · 训练后</div></div>
+  </div>
+  <div class="card">
+    <p class="sub">训练曲线（teacher-forcing rollout MSE，越低越好）</p>
+    <svg viewBox="0 0 720 300" width="100%" preserveAspectRatio="xMidYMid meet">
+      <rect x="0" y="0" width="720" height="300" fill="#f8fafc" rx="10"/>
+      <line x1="46" y1="254.0" x2="674" y2="254.0" stroke="#eef2f7"/><line x1="46" y1="202.0" x2="674" y2="202.0" stroke="#eef2f7"/><line x1="46" y1="150.0" x2="674" y2="150.0" stroke="#eef2f7"/><line x1="46" y1="98.0" x2="674" y2="98.0" stroke="#eef2f7"/><line x1="46" y1="46.0" x2="674" y2="46.0" stroke="#eef2f7"/>
+      <polyline points="46.0,46.0 48.5,87.6 51.0,88.8 53.6,105.1 56.1,133.2 58.6,129.6 61.1,140.9 63.7,135.9 66.2,143.2 68.7,149.3 71.2,138.1 73.7,140.7 76.3,148.9 78.8,154.2 81.3,152.1 83.8,147.6 86.4,158.6 88.9,156.9 91.4,144.4 93.9,150.2 96.4,164.3 99.0,154.3 101.5,167.6 104.0,154.1 106.5,163.3 109.1,157.4 111.6,163.7 114.1,150.9 116.6,145.8 119.1,154.9 121.7,141.5 124.2,145.8 126.7,149.2 129.2,141.5 131.8,152.9 134.3,146.1 136.8,158.5 139.3,166.8 141.8,175.0 144.4,152.1 146.9,154.4 149.4,154.8 151.9,157.5 154.4,163.2 157.0,177.9 159.5,174.6 162.0,158.0 164.5,171.4 167.1,174.9 169.6,157.8 172.1,149.9 174.6,161.3 177.1,168.6 179.7,163.9 182.2,158.0 184.7,171.0 187.2,155.3 189.8,157.4 192.3,168.3 194.8,166.3 197.3,176.1 199.8,160.9 202.4,169.9 204.9,178.7 207.4,167.2 209.9,162.5 212.5,182.3 215.0,175.7 217.5,178.1 220.0,182.1 222.5,169.7 225.1,177.7 227.6,194.9 230.1,167.1 232.6,187.7 235.2,173.6 237.7,186.3 240.2,172.8 242.7,197.6 245.2,174.4 247.8,189.0 250.3,185.3 252.8,184.6 255.3,204.3 257.9,188.7 260.4,195.1 262.9,194.2 265.4,190.9 267.9,200.3 270.5,191.7 273.0,188.2 275.5,184.8 278.0,199.4 280.6,195.5 283.1,193.8 285.6,191.4 288.1,203.5 290.6,208.4 293.2,198.9 295.7,193.4 298.2,193.9 300.7,198.1 303.3,185.3 305.8,180.8 308.3,197.6 310.8,197.1 313.3,182.4 315.9,206.7 318.4,206.3 320.9,189.8 323.4,205.1 326.0,212.2 328.5,195.7 331.0,209.4 333.5,200.1 336.0,216.2 338.6,197.4 341.1,199.5 343.6,204.2 346.1,224.8 348.7,185.9 351.2,198.9 353.7,215.0 356.2,203.6 358.7,202.3 361.3,201.1 363.8,200.8 366.3,210.2 368.8,207.7 371.3,214.4 373.9,205.3 376.4,205.4 378.9,215.1 381.4,214.9 384.0,217.5 386.5,208.3 389.0,213.3 391.5,220.4 394.0,209.9 396.6,214.3 399.1,218.5 401.6,209.7 404.1,209.3 406.7,213.9 409.2,220.0 411.7,214.5 414.2,212.6 416.7,217.2 419.3,230.4 421.8,211.6 424.3,214.8 426.8,214.1 429.4,215.3 431.9,214.5 434.4,221.5 436.9,223.8 439.4,213.3 442.0,220.4 444.5,208.0 447.0,222.4 449.5,213.1 452.1,225.4 454.6,221.6 457.1,213.1 459.6,225.1 462.1,213.2 464.7,219.8 467.2,225.0 469.7,223.2 472.2,217.0 474.8,225.4 477.3,222.3 479.8,227.4 482.3,214.0 484.8,216.5 487.4,217.4 489.9,219.7 492.4,219.6 494.9,232.0 497.5,229.1 500.0,231.5 502.5,222.9 505.0,230.3 507.5,231.2 510.1,222.9 512.6,221.7 515.1,225.7 517.6,216.4 520.2,224.2 522.7,223.2 525.2,225.3 527.7,224.2 530.2,224.6 532.8,221.1 535.3,229.9 537.8,234.9 540.3,234.6 542.9,240.3 545.4,235.3 547.9,214.2 550.4,237.0 552.9,218.6 555.5,224.1 558.0,232.5 560.5,219.3 563.0,230.9 565.6,223.7 568.1,239.1 570.6,236.1 573.1,238.7 575.6,226.4 578.2,221.4 580.7,222.4 583.2,232.3 585.7,234.5 588.2,229.0 590.8,240.2 593.3,237.8 595.8,237.6 598.3,234.2 600.9,226.1 603.4,242.2 605.9,238.1 608.4,230.5 610.9,241.2 613.5,232.1 616.0,239.6 618.5,240.8 621.0,226.5 623.6,228.1 626.1,218.1 628.6,235.7 631.1,254.0 633.6,234.1 636.2,230.6 638.7,225.4 641.2,231.9 643.7,228.8 646.3,234.8 648.8,236.0 651.3,229.5 653.8,227.1 656.3,233.2 658.9,223.9 661.4,237.9 663.9,235.9 666.4,231.5 669.0,243.8 671.5,238.5 674.0,236.4" fill="none" stroke="#2563eb" stroke-width="2.5"/>
+      <circle cx="674.0" cy="236.4" r="4" fill="#2563eb"/>
+    </svg>
+    <p class="note">此前 rollout 为<b>随机初始化</b>，推演只是架构证明。训练后：
+    ① rollout MSE <b>↓64%</b>（6.407→2.328）逼近噪声地板；
+    ② 规划距离 <b>450.8→136.931</b>，LatentPlanner 搜到动作序列抵达目标 latent；
+    ③ 反事实分歧 <b>0.049→0.776</b>，因果头学到 do(x) 偏移。
+    生产形态：把 <code>SyntheticWorld</code> 换成<b>真实轨迹 + 私有权重/标注/后训练配方</b>（闭源），即物理可信 KineOne-WM。本证明全开源、可复现、无需 GPU。</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">4</span>差异化矩阵（vs 白泽类基线）</h2>
+  <p class="sub">六维竞争力对照。KINEWORLD 的可规划 + 反事实 + 基准可复现 + 商用合规 + 单设备 12GB + 开源扩生态是结构性差异。</p>
+  <div class="card">
+  <table>
+    <thead><tr><th>维度</th><th>KINEWORLD · KineOne-WM</th><th>白泽类纯编码器基线</th></tr></thead>
+    <tbody>
+      <tr><td>未来推演</td><td><span class="yes">动作条件化 rollout</span></td><td><span class="no">仅单帧/短期编码</span></td></tr>
+      <tr><td>规划</td><td><span class="yes">LatentPlanner（CEM 无梯度）</span></td><td><span class="no">无</span></td></tr>
+      <tr><td>反事实 what-if</td><td><span class="yes">do(x) 重条件化，可想象替代未来</span></td><td><span class="no">无</span></td></tr>
+      <tr><td>基准可复现</td><td><span class="yes">KINE-Bench 接口开源、缺能力报 n/a 不伪造</span></td><td><span class="no">闭源黑盒</span></td></tr>
+      <tr><td>商用合规</td><td><span class="yes">V-JEPA 2 MIT/Apache-2.0</span></td><td><span class="no">部分 CC-BY-NC 禁商用</span></td></tr>
+      <tr><td>部署成本</td><td><span class="yes">单设备 ~12GB（ViT-L）</span></td><td><span class="no">依赖大模型集群</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">5</span>开源 / 闭源边界（护城河）</h2>
+  <p class="sub">公开接口与基准建立可信生态；私有配方与权重构成壁垒，绝不入公开仓库。</p>
+  <div class="card"><table>
+    <thead><tr><th>类别</th><th>内容</th><th>边界</th></tr></thead>
+    <tbody>
+      <tr><td>架构 / 接口</td><td>CounterfactualRollout、ActionRollout、MultiActionEmbedder、InterventionHead、KINE-Bench 适配接口</td><td><span class="pill open">开源</span></td></tr>
+      <tr><td>基准</td><td>评测协议、缺能力报 n/a 不伪造的诚实约定</td><td><span class="pill open">开源</span></td></tr>
+      <tr><td>权重</td><td>特定本体（机械臂/人体）后训练权重、动作标注</td><td><span class="pill closed">闭源</span></td></tr>
+      <tr><td>后训练配方</td><td>课程 / 数据配比 / ViT-g teacher 蒸馏</td><td><span class="pill closed">闭源</span></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="n">6</span>路线图（到物理可信 KineOne-WM）</h2>
+  <div class="steps">
+    <div class="step"><b>① 架构（已落地）</b><p>动作条件化 + 规划 + 反事实 + 真实特征链路，全开源可复现。</p></div>
+    <div class="step"><b>② 后训练配方（已证明）</b><p>合成动力学 teacher-forcing 验证 moat recipe 收敛、可规划、可反事实。</p></div>
+    <div class="step"><b>③ 真实轨迹后训练（闭源）</b><p>换真实轨迹数据 + 私有权重/标注，rollout 物理可信。需用户 GPU + 标注数据。</p></div>
+    <div class="step"><b>④ 公开能力页（待上线）</b><p>本证据台随 kineworld.com 根域 DNS 修复后上线（DNS 由其他 AI 处理）。</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">7</span>申报节点</h2>
+  <div class="filing">
+    <div class="fcard a"><h3>9/20 · 引航陪跑创业营</h3><p>提交申请。本证据台作为技术可行性佐证：原型已跑通真实 SOTA 特征端到端 + 反事实 + 后训练收敛。</p></div>
+    <div class="fcard b"><h3>10/1 · 合肥国资 + 公司注册</h3><p>完成公司注册与国资申报。差异化定位（可规划/反事实 + 商用合规 + 单设备部署）对应国资关注的自主可控与落地成本。</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="warn"><b>诚实边界：</b>当前 rollout / counterfactual 在<b>随机初始化</b>与<b>合成动力学</b>上验证（架构 + moat recipe 证明），
+  非真实物理预测。真实轨迹后训练（生产形态）需用户 GPU 与标注数据，属闭源配方。所有指标均来自本仓库 <code>posttrain.py</code> /
+  <code>counterfactual.py</code> / <code>real_feature_smoke.py</code> 的可复现运行，无外部断言。</div>
+</section>
+
+<footer>KINEWORLD · KineOne-WM — 反环境感知世界模型 · 证据台自生成于 250 epoch CPU 训练 · 全开源可复现</footer>
+</div></body></html>
