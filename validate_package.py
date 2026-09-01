@@ -16,10 +16,12 @@ HTML = [
     "kineworld_index.html",
     "kineworld_competitive.html",
     "bench_report.html",
+    "gpu_sweep.html",
 ]
 MD = ["PITCH_CN.md", "MILESTONES_CN.md", "README.md", "BENCH_GPU.md"]
 PY = [
     "build_deck.py", "counterfactual_interactive.py", "bench_gpu_launcher.py",
+    "gpu_resolution_sweep.py",
     "prep_bench_data.py", "posttrain.py", "real_feature_posttrain.py",
     "real_feature_smoke.py",
 ]

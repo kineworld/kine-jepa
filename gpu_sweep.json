@@ -1,0 +1,202 @@
+{
+  "device": "cuda",
+  "num_frames": 16,
+  "batch_size": 1,
+  "model": {
+    "name": "vjepa2-vitl-256",
+    "source": "hf:facebook/vjepa2-vitl-fpc64-256",
+    "license": "MIT",
+    "params": "ViT-L/16 (300M)",
+    "capabilities": [
+      "encode"
+    ],
+    "notes": "Meta V-JEPA 2. Encoder only: FUT-1/EMB-1/CAU-1 report n/a."
+  },
+  "plan": [
+    {
+      "img_size": 64,
+      "num_clips": 32
+    },
+    {
+      "img_size": 128,
+      "num_clips": 32
+    },
+    {
+      "img_size": 256,
+      "num_clips": 16
+    }
+  ],
+  "rows": [
+    {
+      "img_size": 64,
+      "num_clips": 32,
+      "device": "cuda",
+      "num_frames": 16,
+      "batch_size": 1,
+      "status": "ok",
+      "inner_wall_s": 377.2,
+      "outer_wall_s": 382.9,
+      "sec_per_clip": 11.79,
+      "clips_per_min": 5.09,
+      "tasks": {
+        "KINE-TEMP-1": {
+          "accuracy": 0.8947,
+          "baseline": 0.5,
+          "status": "ok"
+        },
+        "KINE-MOT-1": {
+          "pearson_r": 0.0213,
+          "baseline": 0.0,
+          "status": "ok"
+        },
+        "KINE-CAU-1": {
+          "auc": 1.0,
+          "baseline": 0.5,
+          "pixel_auc": 1.0,
+          "mean_do_shift": 0.0744,
+          "mean_control_shift": 0.001,
+          "n_pairs": 16,
+          "auc_do": null,
+          "status": "ok",
+          "degraded": "KINE-CAU-1 'intervene' branch unavailable: auc_do not measured"
+        }
+      },
+      "not_applicable": {
+        "KINE-FUT-1": {
+          "status": "n/a",
+          "reason": "KINE-FUT-1 requires 'predict' (a predictor that can imagine masked future tokens), which this model does not expose"
+        },
+        "KINE-EMB-1": {
+          "status": "n/a",
+          "reason": "KINE-EMB-1 requires 'predict' (a predictor that can imagine masked future tokens), which this model does not expose"
+        }
+      },
+      "skipped": {},
+      "grid": null,
+      "model": {
+        "name": "vjepa2-vitl-256",
+        "source": "hf:facebook/vjepa2-vitl-fpc64-256",
+        "license": "MIT",
+        "params": "ViT-L/16 (300M)",
+        "capabilities": [
+          "encode"
+        ],
+        "notes": "Meta V-JEPA 2. Encoder only: FUT-1/EMB-1/CAU-1 report n/a."
+      }
+    },
+    {
+      "img_size": 128,
+      "num_clips": 32,
+      "device": "cuda",
+      "num_frames": 16,
+      "batch_size": 1,
+      "status": "ok",
+      "inner_wall_s": 382.6,
+      "outer_wall_s": 388.3,
+      "sec_per_clip": 11.96,
+      "clips_per_min": 5.02,
+      "tasks": {
+        "KINE-TEMP-1": {
+          "accuracy": 0.9474,
+          "baseline": 0.5,
+          "status": "ok"
+        },
+        "KINE-MOT-1": {
+          "pearson_r": 0.2737,
+          "baseline": 0.0,
+          "status": "ok"
+        },
+        "KINE-CAU-1": {
+          "auc": 1.0,
+          "baseline": 0.5,
+          "pixel_auc": 1.0,
+          "mean_do_shift": 0.0951,
+          "mean_control_shift": 0.0003,
+          "n_pairs": 16,
+          "auc_do": null,
+          "status": "ok",
+          "degraded": "KINE-CAU-1 'intervene' branch unavailable: auc_do not measured"
+        }
+      },
+      "not_applicable": {
+        "KINE-FUT-1": {
+          "status": "n/a",
+          "reason": "KINE-FUT-1 requires 'predict' (a predictor that can imagine masked future tokens), which this model does not expose"
+        },
+        "KINE-EMB-1": {
+          "status": "n/a",
+          "reason": "KINE-EMB-1 requires 'predict' (a predictor that can imagine masked future tokens), which this model does not expose"
+        }
+      },
+      "skipped": {},
+      "grid": null,
+      "model": {
+        "name": "vjepa2-vitl-256",
+        "source": "hf:facebook/vjepa2-vitl-fpc64-256",
+        "license": "MIT",
+        "params": "ViT-L/16 (300M)",
+        "capabilities": [
+          "encode"
+        ],
+        "notes": "Meta V-JEPA 2. Encoder only: FUT-1/EMB-1/CAU-1 report n/a."
+      }
+    },
+    {
+      "img_size": 256,
+      "num_clips": 16,
+      "device": "cuda",
+      "num_frames": 16,
+      "batch_size": 1,
+      "status": "ok",
+      "inner_wall_s": 259.4,
+      "outer_wall_s": 265.4,
+      "sec_per_clip": 16.21,
+      "clips_per_min": 3.7,
+      "tasks": {
+        "KINE-TEMP-1": {
+          "accuracy": 1.0,
+          "baseline": 0.5,
+          "status": "ok"
+        },
+        "KINE-MOT-1": {
+          "pearson_r": 0.3621,
+          "baseline": 0.0,
+          "status": "ok"
+        },
+        "KINE-CAU-1": {
+          "auc": 1.0,
+          "baseline": 0.5,
+          "pixel_auc": 1.0,
+          "mean_do_shift": 0.0951,
+          "mean_control_shift": 0.0003,
+          "n_pairs": 16,
+          "auc_do": null,
+          "status": "ok",
+          "degraded": "KINE-CAU-1 'intervene' branch unavailable: auc_do not measured"
+        }
+      },
+      "not_applicable": {
+        "KINE-FUT-1": {
+          "status": "n/a",
+          "reason": "KINE-FUT-1 requires 'predict' (a predictor that can imagine masked future tokens), which this model does not expose"
+        },
+        "KINE-EMB-1": {
+          "status": "n/a",
+          "reason": "KINE-EMB-1 requires 'predict' (a predictor that can imagine masked future tokens), which this model does not expose"
+        }
+      },
+      "skipped": {},
+      "grid": null,
+      "model": {
+        "name": "vjepa2-vitl-256",
+        "source": "hf:facebook/vjepa2-vitl-fpc64-256",
+        "license": "MIT",
+        "params": "ViT-L/16 (300M)",
+        "capabilities": [
+          "encode"
+        ],
+        "notes": "Meta V-JEPA 2. Encoder only: FUT-1/EMB-1/CAU-1 report n/a."
+      }
+    }
+  ]
+}

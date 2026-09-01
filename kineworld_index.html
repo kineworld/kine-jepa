@@ -68,7 +68,7 @@
       <div class="chk"><span class="box done">✓</span><span>差异化定位（合规 + 低成本 + 可规划/反事实）</span></div>
       <div class="chk"><span class="box done">✓</span><span>自主可控论证：V-JEPA 2 MIT/Apache-2.0 全开源</span></div>
       <div class="chk"><span class="box user">◑</span><span>公司注册：用户线下办理（章程/股权/开户）</span></div>
-      <div class="chk"><span class="box pend">🔧</span><span>GPU 链路已跑通（合成 98 条，≈160× vs CPU）；真实数字待真实视频</span></div>
+      <div class="chk"><span class="box pend">🔧</span><span>GPU 链路已跑通（合成 98 条 ≈160× vs CPU；原生 256px 仅慢 1.4×）；真实数字待真实视频</span></div>
       <div class="chk"><span class="box pend">🔧</span><span>真实轨迹后训练：需 GPU + 标注（闭源）</span></div>
     </div>
   </div>
@@ -104,8 +104,10 @@
     </div>
     <div class="card">
       <h3>GPU 评测报告（RTX 5070 Ti · CUDA）</h3>
-      <p>98 条片段实测：TEMP-1 / MOT-1 / CAU-1 + 墙钟 901.7s（≈160× vs CPU）。含诚实边界说明（合成分数非竞争力证据）。</p>
-      <a href="bench_report.html">打开报告 →</a>
+      <p>98 条片段实测：TEMP-1 / MOT-1 / CAU-1 + 墙钟 901.7s（≈160× vs CPU）。
+      另含 64/128/256px 分辨率-吞吐扫描：原生 256px 仅慢 1.4×，堵住「降采样取巧」质疑。
+      含诚实边界说明（合成分数非竞争力证据）。</p>
+      <a href="bench_report.html">打开评测报告 →</a> · <a href="gpu_sweep.html">打开扫描报告 →</a>
     </div>
     <div class="card">
       <h3>竞争力对标与路线图</h3>

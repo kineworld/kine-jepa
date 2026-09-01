@@ -8,3 +8,5 @@ checkpoints/
 .env
 *.log
 probe*.json
+sweep_*.html
+probe*.html

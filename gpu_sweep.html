@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KINE-Bench 分辨率-吞吐扫描</title>
+<style>
+  :root{--ink:#0f172a;--mut:#64748b;--bd:#e2e8f0;--acc:#2563eb;--warn:#b45309;}
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+       margin:0;background:#f1f5f9;color:var(--ink);padding:28px}
+  .wrap{max-width:900px;margin:0 auto}
+  h1{font-size:21px;margin:0 0 4px} .lead{color:var(--mut);font-size:14px;margin:0 0 18px}
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--bd);
+        border-radius:12px;overflow:hidden;font-size:14px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--bd)}
+  th{background:#f8fafc;font-size:12px;color:var(--mut)}
+  tr:last-child td{border-bottom:none} tr.bad td{color:#b91c1c}
+  .note{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 14px;
+        font-size:13px;color:var(--warn);margin-top:16px;line-height:1.7}
+</style></head><body><div class="wrap">
+<h1>KINE-Bench 分辨率-吞吐扫描</h1>
+<p class="lead">V-JEPA 2 (ViT-L/16, num_frames=16) · CUDA · 合成片段 ·
+回答评审质疑「64px 是否降采样省算力」</p>
+<table><thead><tr><th>分辨率</th><th>片段数</th><th>墙钟</th><th>每片段</th><th>条/分</th><th>相对 64px</th></tr></thead>
+<tbody><tr><td><b>64px</b></td><td>32</td><td>377.2s</td><td>11.79s</td><td>5.09</td><td>1.0×</td></tr><tr><td><b>128px</b></td><td>32</td><td>382.6s</td><td>11.96s</td><td>5.02</td><td>1.0×</td></tr><tr><td><b>256px</b></td><td>16</td><td>259.4s</td><td>16.21s</td><td>3.7</td><td>1.4×</td></tr></tbody></table>
+<div class="note"><b>诚实边界：</b>本扫描只测量<b>吞吐与可运行性</b>，不测量模型竞争力。
+合成片段不含真实运动结构，表内 TEMP/MOT 分数是噪声（例如 2 条样本下 TEMP 可在 0.0 与 1.0 之间跳变），
+CAU-1 的 AUC=1.0 属 degraded 口径（<code>auc_do=null</code>，do-branch 未暴露）。
+真实能力数字必须以 <code>--data-dir</code> 喂入真实视频后重跑。</div>
+</div></body></html>
