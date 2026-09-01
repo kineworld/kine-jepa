@@ -116,7 +116,21 @@
 </section>
 
 <section>
-  <h2><span class="n">4</span>差异化矩阵（vs 白泽类基线）</h2>
+  <h2><span class="n">4</span>真实特征后训练（moat recipe 收敛于真实 V-JEPA 2 特征）</h2>
+  <p class="sub">把后训练配方从合成动力学推到真实 SOTA 编码特征：在真实 1.3GB V-JEPA 2 权重编码的特征轨迹上 teacher-forcing 训练 next-latent 预测器（CPU，K=3 段×8 窗口）。</p>
+  <div class="metrics">
+    <div class="metric"><div class="m-v bad">0.0815</div><div class="m-k">留一 rollout · 停在 z₀</div></div>
+    <div class="metric"><div class="m-v ok">0.0573</div><div class="m-k">留一 rollout · 训练后（↓30% 泛化）</div></div>
+    <div class="metric"><div class="m-v bad">0.1311</div><div class="m-k">训练对 MSE · 训练前</div></div>
+    <div class="metric"><div class="m-v ok">~0</div><div class="m-k">训练对 MSE · 训练后（拟合至地板·21对）</div></div>
+  </div>
+  <div class="card"><p class="note">证据源 <code>real_feature_posttrain.py</code>（commit e33e303）：真实权重编码合成运动视频 → 真实 1024-d 特征轨迹（窗口间 std≈1.94）→ 残差 MLP next-latent 预测器。
+  训练对（21 对）MSE 0.131→~0 证明配方能精确拟合真实特征；留一视频自回归 rollout <b>↓30%</b>（0.0815→0.0573）证明跨视频泛化。
+  诚实边界：本证仅 21 对属概念验证，生产用大规模真实轨迹 + 动作标注 + ViT-g 蒸馏（闭源）。至此 moat recipe 已在<b>合成动力学</b>与<b>真实 SOTA 特征</b>两条路径上均验证。</p></div>
+</section>
+
+<section>
+  <h2><span class="n">5</span>差异化矩阵（vs 白泽类基线）</h2>
   <p class="sub">六维竞争力对照。KINEWORLD 的可规划 + 反事实 + 基准可复现 + 商用合规 + 单设备 12GB + 开源扩生态是结构性差异。</p>
   <div class="card">
   <table>
@@ -134,7 +148,7 @@
 </section>
 
 <section>
-  <h2><span class="n">5</span>开源 / 闭源边界（护城河）</h2>
+  <h2><span class="n">6</span>开源 / 闭源边界（护城河）</h2>
   <p class="sub">公开接口与基准建立可信生态；私有配方与权重构成壁垒，绝不入公开仓库。</p>
   <div class="card"><table>
     <thead><tr><th>类别</th><th>内容</th><th>边界</th></tr></thead>
@@ -148,7 +162,7 @@
 </section>
 
 <section>
-  <h2><span class="n">6</span>路线图（到物理可信 KineOne-WM）</h2>
+  <h2><span class="n">7</span>路线图（到物理可信 KineOne-WM）</h2>
   <div class="steps">
     <div class="step"><b>① 架构（已落地）</b><p>动作条件化 + 规划 + 反事实 + 真实特征链路，全开源可复现。</p></div>
     <div class="step"><b>② 后训练配方（已证明）</b><p>合成动力学 teacher-forcing 验证 moat recipe 收敛、可规划、可反事实。</p></div>
@@ -158,7 +172,7 @@
 </section>
 
 <section>
-  <h2><span class="n">7</span>申报节点</h2>
+  <h2><span class="n">8</span>申报节点</h2>
   <div class="filing">
     <div class="fcard a"><h3>9/20 · 引航陪跑创业营</h3><p>提交申请。本证据台作为技术可行性佐证：原型已跑通真实 SOTA 特征端到端 + 反事实 + 后训练收敛。</p></div>
     <div class="fcard b"><h3>10/1 · 合肥国资 + 公司注册</h3><p>完成公司注册与国资申报。差异化定位（可规划/反事实 + 商用合规 + 单设备部署）对应国资关注的自主可控与落地成本。</p></div>
