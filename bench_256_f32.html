@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KINE-Bench 评测报告 · vjepa2-vitl-256</title>
+<style>
+  :root { --ink:#0f172a; --mut:#64748b; --bd:#e2e8f0; --bg:#fff; --ok:#16a34a; --acc:#2563eb; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+         margin:0; background:#f1f5f9; color:var(--ink); padding:28px; }
+  .wrap { max-width:960px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  .lead { color:var(--mut); font-size:14px; margin:0 0 16px; }
+  .meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:18px; }
+  .meta div { background:var(--bg); border:1px solid var(--bd); border-radius:10px; padding:10px 12px; }
+  .meta b { display:block; font-size:12px; color:var(--mut); font-weight:600; }
+  .meta span { font-size:15px; font-weight:700; }
+  .card { background:var(--bg); border:1px solid var(--bd); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+  .card h3 { margin:0 0 8px; font-size:15px; }
+  .card.na { border-color:#fed7aa; background:#fff7ed; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--bd); }
+  .note { font-size:13px; color:var(--mut); line-height:1.6; margin:0; }
+  footer { color:var(--mut); font-size:12px; text-align:center; padding:18px; }
+</style></head><body><div class="wrap">
+  <h1>KINE-Bench 评测报告 · vjepa2-vitl-256</h1>
+  <p class="lead">真实特征上的世界模型基准（KINE-Bench v0.5.0）。缺失能力按协议报 n/a，不伪造。</p>
+  <div class="meta">
+    <div><b>模型</b><span>vjepa2-vitl-256</span></div>
+    <div><b>数据</b><span>synthetic(16)</span></div>
+    <div><b>片段数</b><span>16</span></div>
+    <div><b>设备</b><span>cuda</span></div>
+    <div><b>耗时</b><span>253.6s</span></div>
+  </div>
+  <h2 style="font-size:16px;margin:6px 0 10px;">可运行任务</h2>
+  <div class="card"><h3>KINE-TEMP-1</h3>
+          <table><tbody><tr><td>accuracy</td><td>1.0000</td></tr>
+<tr><td>baseline</td><td>0.5000</td></tr></tbody></table></div><div class="card"><h3>KINE-MOT-1</h3>
+          <table><tbody><tr><td>pearson_r</td><td>0.4891</td></tr>
+<tr><td>baseline</td><td>0.0000</td></tr></tbody></table></div><div class="card"><h3>KINE-CAU-1</h3>
+          <table><tbody><tr><td>auc</td><td>1.0000</td></tr>
+<tr><td>baseline</td><td>0.5000</td></tr>
+<tr><td>pixel_auc</td><td>1.0000</td></tr>
+<tr><td>mean_do_shift</td><td>0.0951</td></tr>
+<tr><td>mean_control_shift</td><td>0.0003</td></tr>
+<tr><td>n_pairs</td><td>16</td></tr>
+<tr><td>auc_do</td><td>None</td></tr>
+<tr><td>degraded</td><td>KINE-CAU-1 'intervene' branch unavailable: auc_do not measured</td></tr></tbody></table></div>
+  <h2 style="font-size:16px;margin:14px 0 10px;">不适用任务（诚实 n/a）</h2>
+  <div class="card na"><h3>KINE-FUT-1 · n/a</h3>
+          <p class="note">KINE-FUT-1 requires 'predict' (a predictor that can imagine masked future tokens), which this model does not expose</p></div><div class="card na"><h3>KINE-EMB-1 · n/a</h3>
+          <p class="note">KINE-EMB-1 requires 'predict' (a predictor that can imagine masked future tokens), which this model does not expose</p></div>
+  <footer>由 bench_gpu_launcher.py 生成 · 全部指标来自 KINE-Bench 可复现运行</footer>
+</div></body></html>
