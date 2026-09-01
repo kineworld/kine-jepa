@@ -137,7 +137,7 @@ html = f"""<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
   <h1>KINEWORLD 能力证据台</h1>
   <p>基于 <b>Meta V-JEPA 2</b>（MIT / Apache-2.0，可商用）编码器构建的动作条件化、可规划、可反事实推演的 latent 世界模型。
   本页聚合已落地的技术证据链与可交互招牌，直接服务 <b>9/20 引航陪跑创业营</b> 与 <b>10/1 合肥国资</b> 两条申报通道。
-  架构与后训练证据 <b>可复现、开源、无需 GPU</b>；GPU 真实评测待设备运行（见第 10 支柱）。</p>
+  架构与后训练证据 <b>可复现、开源、无需 GPU</b>；GPU 评测已在 <b>RTX 5070 Ti（CUDA）</b>跑通（第 10 支柱）。</p>
 </div></div>
 
 <div class="wrap">
@@ -263,19 +263,24 @@ html = f"""<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
 </section>
 
 <section>
-  <h2><span class="n">10</span>GPU 真实评测（KINE-Bench · 待用户设备运行）</h2>
-  <p class="sub">一键启动器已就绪：在用户 GPU 上跑 98 条真实片段，产出 KINE-TEMP-1 / MOT-1 / EVT-1 硬数字（编码器能力，V-JEPA 2 可跑；FUT/EMB/CAU 需 predict/intervene，按协议报 n/a 不伪造）。</p>
+  <h2><span class="n">10</span>GPU 评测已跑通（RTX 5070 Ti · CUDA）</h2>
+  <p class="sub">本机 RTX 5070 Ti Laptop（12GB，CUDA）实测跑通 KINE-Bench 全协议：98 条片段、V-JEPA 2 ViT-L/16（300M）、离线加载本地权重。V-JEPA 2 仅 encode，FUT-1/EMB-1 按协议诚实报 n/a 不伪造。</p>
   <div class="metrics">
-    <div class="metric"><div class="m-v bad">待运行</div><div class="m-k">KINE-TEMP-1（时序一致性）</div></div>
-    <div class="metric"><div class="m-v bad">待运行</div><div class="m-k">KINE-MOT-1（运动保真）</div></div>
-    <div class="metric"><div class="m-v bad">待运行</div><div class="m-k">KINE-EVT-1（事件定位，需真实标注）</div></div>
+    <div class="metric"><div class="m-v ok">1.000</div><div class="m-k">KINE-TEMP-1 时序一致性（基线 0.5）</div></div>
+    <div class="metric"><div class="m-v ok">-0.002</div><div class="m-k">KINE-MOT-1 运动保真 r（基线 0.0）</div></div>
+    <div class="metric"><div class="m-v ok">1.000</div><div class="m-k">KINE-CAU-1 因果 AUC（基线 0.5，degraded）</div></div>
+    <div class="metric"><div class="m-v ok">901.7s</div><div class="m-k">GPU 墙钟（98 条，含模型加载）</div></div>
+    <div class="metric"><div class="m-v ok">≈160×</div><div class="m-k">提速（每片段 1476s→9.2s vs CPU）</div></div>
+    <div class="metric"><div class="m-v bad">skipped</div><div class="m-k">KINE-EVT-1（合成模式无真实视频+标注）</div></div>
   </div>
   <div class="card">
-    <p class="sub">一行命令（用户 GPU 上执行）</p>
-    <p class="note"><code>python bench_gpu_launcher.py --data-dir &lt;视频文件夹&gt; --device cuda</code><br>
-    产物：<code>bench_report.json</code> + 自包含 <code>bench_report.html</code>（真实评测报告，运行后替换上方"待运行"）。
-    数据管线 <code>prep_bench_data.py</code> 把视频文件夹整理为 <code>raw/</code> + 启发式 <code>events.json</code>（事件帧占位，真实标注后 EVT-1 才可信）。
-    完整指南见 <code>BENCH_GPU.md</code>。</p>
+    <p class="sub">吞吐对照（同配置：num_frames 16 / img_size 64）</p>
+    <p class="note">CPU smoke 8 条 = <b>11807.5s</b>（每片段 <b>1476s</b>）；本次 GPU 98 条 = <b>901.7s</b>（每片段 <b>9.2s</b>）→ <b>约 160× 提速</b>。
+    且该 GPU 被系统电源策略锁在 ~17W（`Perf P4`），满血（100W）下还可更快。这是可复现的<b>吞吐硬证据</b>。</p>
+    <p class="sub" style="margin-top:12px;">诚实边界（重要）</p>
+    <p class="note">本轮为 <b>98 条合成片段</b>验证：TEMP-1=1.0 在合成数据上是<b>平凡高分</b>、MOT-1≈0 是因合成片段<b>无真实运动结构</b>、CAU-1 AUC=1.0 属退化态（intervene 分支不可用，<code>auc_do=null</code>）。
+    因此这些<b>分数不构成竞争力证据</b>；本轮真实价值是「CUDA 链路跑通 + 协议可执行 + 160× 吞吐」。申报用的硬数字须用真实视频跑
+    <code>python bench_gpu_launcher.py --data-dir &lt;视频文件夹&gt; --device cuda</code>（EVT-1 还需真实事件标注）。完整指南见 <code>BENCH_GPU.md</code>，原始报告见 <code>bench_report.html</code>。</p>
   </div>
 </section>
 

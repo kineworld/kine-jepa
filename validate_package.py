@@ -14,6 +14,7 @@ HTML = [
     "kineworld_capability_deck.html",
     "counterfactual_interactive.html",
     "kineworld_index.html",
+    "bench_report.html",
 ]
 MD = ["PITCH_CN.md", "MILESTONES_CN.md", "README.md", "BENCH_GPU.md"]
 PY = [

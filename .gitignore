@@ -6,3 +6,5 @@ data/
 checkpoints/
 *.pt
 .env
+*.log
+probe*.json
