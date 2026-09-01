@@ -104,10 +104,9 @@
     </div>
     <div class="card">
       <h3>GPU 评测报告（RTX 5070 Ti · CUDA）</h3>
-      <p>98 条片段实测：TEMP-1 / MOT-1 / CAU-1 + 墙钟 901.7s（≈160× vs CPU）。
-      另含 64/128/256px 分辨率-吞吐扫描：原生 256px 仅慢 1.4×，堵住「降采样取巧」质疑。
-      含诚实边界说明（合成分数非竞争力证据）。</p>
-      <a href="bench_report.html">打开评测报告 →</a> · <a href="gpu_sweep.html">打开扫描报告 →</a>
+      <p>双锚点吞吐实测：64px 全量 98 条 901.7s（≈160× vs CPU）+ <b>原生 256px 全量 98 条 926.5s（9.45s/条，6.35 条/分）</b>——
+      降采样几乎不省算力，原生分辨率可全量跑。含诚实边界说明（合成分数非竞争力证据）。</p>
+      <a href="bench_report.html">打开 64px 报告 →</a> · <a href="bench_report_256.html">打开 256px 报告 →</a> · <a href="gpu_sweep.html">打开扫描 →</a>
     </div>
     <div class="card">
       <h3>竞争力对标与路线图</h3>

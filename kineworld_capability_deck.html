@@ -217,6 +217,14 @@
     实测可在笔记本 GPU 上跑通（非降采样取巧）。表内数值随分辨率上升而变慢属预期（token 数平方增长），
     <b>扫描只测吞吐与可运行性，不测模型能力</b>。原始报告见 <code>gpu_sweep.html</code>。</p>
     
+    <p class="sub" style="margin-top:12px;">原生分辨率全量（256px · V-JEPA 2 原生输入尺寸）</p>
+    <div class="metrics">
+      <div class="metric"><div class="m-v ok">926.5s</div><div class="m-k">256px 全量墙钟（98 条，含模型加载）</div></div>
+      <div class="metric"><div class="m-v ok">9.5s</div><div class="m-k">每片段（64px 全量为 9.2s，比率 1.0×）</div></div>
+      <div class="metric"><div class="m-v ok">6.3</div><div class="m-k">条/分（原生分辨率）</div></div>
+    </div>
+    <p class="note">与 64px 全量（bench_report.json）构成双锚点：同协议同数据，仅分辨率不同。
+    证明<b>原生 256px 无需降采样即可在本机全量跑完</b>；吞吐数字可复现（命令见 <code>BENCH_GPU.md</code>）。</p>
     <p class="sub" style="margin-top:12px;">诚实边界（重要）</p>
     <p class="note">本轮为 <b>98 条合成片段</b>验证：TEMP-1=1.0 在合成数据上是<b>平凡高分</b>、MOT-1≈0 是因合成片段<b>无真实运动结构</b>、CAU-1 AUC=1.0 属退化态（intervene 分支不可用，<code>auc_do=null</code>）。
     因此这些<b>分数不构成竞争力证据</b>；本轮真实价值是「CUDA 链路跑通 + 协议可执行 + 160× 吞吐」。申报用的硬数字须用真实视频跑
