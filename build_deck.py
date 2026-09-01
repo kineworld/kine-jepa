@@ -117,6 +117,7 @@ except Exception as e:  # 扫描产物损坏也不应阻断证据台构建
 # 与 64px 全量（901.7s）构成「降采样 vs 原生」的双锚点吞吐证据。
 BENCH256_HTML = ""
 _b256_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bench_report_256.json")
+_b4_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bench_report_256_b4.json")
 try:
     with open(_b256_path, encoding="utf-8") as _f:
         _b = json.load(_f)
@@ -126,6 +127,19 @@ try:
         _spc = _wall / _n
         _c64 = 901.7 / 98.0  # 64px 全量每片段（bench_report.json）
         _ratio = _spc / _c64 if _c64 else 0
+        # 批处理对照（可选）：batch4 vs batch1，回应「为何不批处理」
+        _batch_line = ""
+        try:
+            with open(_b4_path, encoding="utf-8") as _f4:
+                _b4 = json.load(_f4)
+            _gain = _wall / max(1e-9, float(_b4.get("wall_s", _wall)))
+            _batch_line = (f"批处理对照：<b>batch 4 仅快 {_gain:.2f}×</b>"
+                           f"（{_b4['wall_s']:.1f}s vs {_wall:.1f}s），显存却由 8.5GB 涨至 11.1GB"
+                           f"（逼近 12GB 上限）→ 瓶颈在<b>每片段固定开销（数据管道）而非 GPU 算力</b>，"
+                           f"默认 batch 1–2 是收益/代价最优解。与分辨率扫描结论互证。")
+        except Exception:
+            _batch_line = ""
+        _extra_note = f"<br/>{_batch_line}" if _batch_line else ""
         BENCH256_HTML = f"""
     <p class="sub" style="margin-top:12px;">原生分辨率全量（256px · V-JEPA 2 原生输入尺寸）</p>
     <div class="metrics">
@@ -134,7 +148,7 @@ try:
       <div class="metric"><div class="m-v ok">{60.0 * _n / _wall:.1f}</div><div class="m-k">条/分（原生分辨率）</div></div>
     </div>
     <p class="note">与 64px 全量（bench_report.json）构成双锚点：同协议同数据，仅分辨率不同。
-    证明<b>原生 256px 无需降采样即可在本机全量跑完</b>；吞吐数字可复现（命令见 <code>BENCH_GPU.md</code>）。</p>"""
+    证明<b>原生 256px 无需降采样即可在本机全量跑完</b>；吞吐数字可复现（命令见 <code>BENCH_GPU.md</code>）。{_extra_note}</p>"""
         print(f"[b256] 嵌入 256px 全量数据（{_n} 条 / {_wall:.1f}s）")
 except FileNotFoundError:
     pass

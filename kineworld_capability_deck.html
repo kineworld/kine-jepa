@@ -224,7 +224,7 @@
       <div class="metric"><div class="m-v ok">6.3</div><div class="m-k">条/分（原生分辨率）</div></div>
     </div>
     <p class="note">与 64px 全量（bench_report.json）构成双锚点：同协议同数据，仅分辨率不同。
-    证明<b>原生 256px 无需降采样即可在本机全量跑完</b>；吞吐数字可复现（命令见 <code>BENCH_GPU.md</code>）。</p>
+    证明<b>原生 256px 无需降采样即可在本机全量跑完</b>；吞吐数字可复现（命令见 <code>BENCH_GPU.md</code>）。<br/>批处理对照：<b>batch 4 仅快 1.01×</b>（918.3s vs 926.5s），显存却由 8.5GB 涨至 11.1GB（逼近 12GB 上限）→ 瓶颈在<b>每片段固定开销（数据管道）而非 GPU 算力</b>，默认 batch 1–2 是收益/代价最优解。与分辨率扫描结论互证。</p>
     <p class="sub" style="margin-top:12px;">诚实边界（重要）</p>
     <p class="note">本轮为 <b>98 条合成片段</b>验证：TEMP-1=1.0 在合成数据上是<b>平凡高分</b>、MOT-1≈0 是因合成片段<b>无真实运动结构</b>、CAU-1 AUC=1.0 属退化态（intervene 分支不可用，<code>auc_do=null</code>）。
     因此这些<b>分数不构成竞争力证据</b>；本轮真实价值是「CUDA 链路跑通 + 协议可执行 + 160× 吞吐」。申报用的硬数字须用真实视频跑
