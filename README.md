@@ -42,7 +42,8 @@ tests/           test_core / test_rollout / test_counterfactual / test_posttrain
 | 反事实推演 | `counterfactual.py` + `counterfactual_demo.html` | do(x) 分歧可测、确定性可复现 |
 | 后训练配方（合成） | `posttrain.py` + `posttrain_demo.html` | rollout MSE ↓63.7%（6.41→2.33） |
 | 后训练配方（真实特征） | `real_feature_posttrain.py` + `real_feature_posttrain.html` | 留一 rollout ↓30%（0.0815→0.0573） |
-| **统一能力证据台** | `build_deck.py` → `kineworld_capability_deck.html` | 8 节聚合，服务申报 |
+| **统一能力证据台** | `build_deck.py` → `kineworld_capability_deck.html` | 10 支柱聚合（内嵌可交互反事实 demo），服务申报 |
+| **GPU 评测（CUDA 实测）** | `bench_gpu_launcher.py` / `gpu_resolution_sweep.py` → `BENCH_GPU.md` | 98 条 901.7s（≈160× vs CPU）；原生 256px 全量 926.5s（仅慢 2.7%）；64 帧满配零代价 |
 
 复现（CPU）：
 
@@ -55,6 +56,9 @@ python posttrain.py             # 合成动力学后训练证明
 python real_feature_posttrain.py # 真实特征后训练证明（需本地 V-JEPA 2 权重）
 python -m pytest tests/         # 回归测试
 ```
+
+GPU 评测（可选，笔记本级即可）见 `BENCH_GPU.md`：一行命令跑 KINE-Bench 全协议，
+实测 RTX 5070 Ti Laptop 上 64px ≈160× 提速、原生 256px 全量可行、fpc64 满配零吞吐代价。
 
 ## 开源 / 闭源边界（护城河）
 
