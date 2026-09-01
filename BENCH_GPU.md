@@ -23,7 +23,8 @@ git -c http.proxy=http://127.0.0.1:7897/ pull
 
 > 踩坑记录（已修复，pull 即含）：
 > - transformers 5.16.1 的 `AutoVideoProcessor` 是**惰性桩**，访问即抛 `ModuleNotFoundError`；原适配器 `try/except ImportError` 没兜住，连带把 `AutoModel` 置 None。已改为处理器可选 + 守卫只要求 `AutoModel`（提交 `ac448ef`，已推 `zoahdev/kine-bench`）。
-> - 笔记本 GPU 被系统电源策略锁在 ~17W / `Perf P4`，`nvidia-smi -pl` 在沙箱内无权限改。评测照常跑，只是比满血慢；属正常现象。
+> - **（此处曾写错，已更正）** 一度以为 GPU 被系统电源策略锁在 ~17W / `Perf P4`。那是**空闲态读数**：`nvidia-smi` 在无负载时显示 17.6W、`utilization 1%`、`Perf P4`，属正常降频。实测评测负载下为 **98.8W、`utilization 99%`、显存 5.3GB**，并未被锁。教训：判断功耗墙必须在负载中读，不能读空闲值。
+> - `nvidia-smi -pl 100` 仍被拒（`Changing power management limit is not supported in current scope`），但这是沙箱权限问题，不影响实测性能。
 
 ## 一键评测（GPU）
 ```bash
@@ -56,17 +57,46 @@ python bench_gpu_launcher.py --smoke
 ```
 
 ## 你会拿到什么
-| 任务 | 含义 | V-JEPA 2（编码器）状态 |
+| 任务 | 含义 | V-JEPA 2（纯编码器）实际状态 |
 |---|---|---|
 | KINE-TEMP-1 | 时序理解 | ✅ 可跑 |
 | KINE-MOT-1 | 运动幅度 | ✅ 可跑 |
-| KINE-EVT-1 | 物理事件偏移 | ✅ 可跑（需 events.json） |
-| KINE-FUT-1 / EMB-1 / CAU-1 | 未来预测/具身想象/因果 | n/a（编码器无 predictor/intervention，协议诚实报 n/a） |
+| KINE-EVT-1 | 物理事件偏移 | ✅ 可跑（需真实视频 + events.json），合成模式下 **skipped** |
+| KINE-CAU-1 | 因果 | ⚠️ **可跑但 degraded**：`auc_do=null`，do-branch 未暴露，只剩观测量 |
+| KINE-FUT-1 / EMB-1 | 未来预测 / 具身想象 | n/a（编码器无 predictor，协议诚实报 n/a） |
 
 > 白泽类纯编码器同样只有 encode，TEMP/MOT/EVT 是同台可比硬数字；
 > FUT/EMB/CAU 差距正是 KineOne-WM「可规划 + 可反事实」的护城河——待真实轨迹后训练（闭源配方）补上。
 
+## 本机实测结果（RTX 5070 Ti Laptop · CUDA）
+| 项 | 数值 |
+|---|---|
+| 数据 | 合成 98 条（无视频文件） |
+| 分辨率 / 帧数 | 64px / 16 帧 |
+| 墙钟 | **901.7s**（≈9.2s 每条，含模型加载） |
+| 对比 CPU | CPU smoke 8 条耗 11807.5s（≈1476s 每条）→ **≈160× 提速** |
+| 负载态功耗 | 98.8W、`utilization 99%`、显存 5.3GB |
+| KINE-TEMP-1 | accuracy 1.000（基线 0.5） |
+| KINE-MOT-1 | pearson_r −0.0022（基线 0.0） |
+| KINE-CAU-1 | AUC 1.000（基线 0.5）· **degraded，`auc_do=null`** |
+| KINE-FUT-1 / EMB-1 | n/a（`requires 'predict'`） |
+| KINE-EVT-1 | skipped（合成模式无真实视频 + 标注） |
+
+## 分辨率-吞吐扫描（回应「64px 是不是省算力」）
+```bash
+export KINE_VJEPA2_LOCAL="C:/Users/zoah/AppData/Local/Temp/vjepa2" \
+       HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+python gpu_resolution_sweep.py --device cuda --clips "64:32,128:32,256:16"
+# 产出 gpu_sweep.json + gpu_sweep.html（三档墙钟 / 每条耗时 / 相对 64px 倍率）
+```
+三档同机同数据，直接堵住「降采样换速度」的质疑。256px（V-JEPA 2 原生分辨率）已验证可在
+笔记本 GPU 上跑通（2 条 144.8s，≈72s 每条）。
+
 ## 拿到数字后
 把 `bench_report.html` 并入 `kineworld_capability_deck.html` 第 10 支柱作为「真实基准」，
-直接服务 9/20 引航陪跑 + 10/1 合肥国资申报。诚实边界：合成验证的数字仅证明 CUDA 路径
-可行 + 给出 GPU 耗时对比（CPU smoke 8 条曾耗 11807s）；**真实申报数字须用真实 98 条片段跑 B**。
+直接服务 9/20 引航陪跑 + 10/1 合肥国资申报。
+
+**诚实边界（务必一起交付）**：合成片段不含真实运动结构，TEMP=1.0 平凡偏高、
+MOT≈0、CAU AUC=1.0 属 degraded，样本量小时分数可在极值间跳变（2 条样本下 TEMP 观测到 0.0
+与 1.0 的差异）。这些分数**不是竞争力证据**；本次真正证明的是 CUDA 链路跑通 + 评测协议
+可执行 + 160× 吞吐。**真实申报数字须用真实 98 条片段跑方案 B。**
