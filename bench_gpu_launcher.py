@@ -112,6 +112,8 @@ def main():
     ap.add_argument("--batch-size", type=int, default=2)
     ap.add_argument("--out", type=str, default=None)
     ap.add_argument("--smoke", action="store_true", help="CPU 验证模式，无需数据")
+    ap.add_argument("--synthetic", action="store_true",
+                    help="合成数据模式（无需视频文件），--max-clips 生效；配合 --device cuda 即 GPU 合成验证")
     args = ap.parse_args()
 
     out_json = Path(args.out) if args.out else (ROOT / "bench_report.json")
@@ -124,6 +126,8 @@ def main():
         argv += ["--img-size", str(args.img_size)]
     if args.smoke:
         argv.append("--smoke")
+    elif args.synthetic:
+        pass  # 不加 --data-dir -> kinebench 走内置 synthetic(N)，--max-clips 生效
     else:
         argv += ["--data-dir", str(args.data_dir)]
 
