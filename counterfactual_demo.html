@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KineOne-WM · 反事实推演 Demo</title>
+<style>
+  :root { --ink:#0f172a; --mut:#64748b; --bd:#e2e8f0; --bg:#ffffff; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+         margin:0; background:#f1f5f9; color:var(--ink); padding:28px; }
+  .wrap { max-width:960px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  .lead { color:var(--mut); margin:0 0 20px; font-size:14px; }
+  .metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:20px; }
+  .metric { background:var(--bg); border:1px solid var(--bd); border-radius:12px; padding:14px 16px; }
+  .m-v { font-size:22px; font-weight:700; }
+  .m-k { font-size:12px; color:var(--mut); margin-top:4px; }
+  .card { background:var(--bg); border:1px solid var(--bd); border-radius:14px; padding:18px 20px; margin-bottom:18px; }
+  .card h3 { margin:0 0 6px; font-size:16px; }
+  .sub { color:var(--mut); font-size:13px; margin:0 0 12px; }
+  .legend { display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:13px; color:var(--mut); }
+  .lg { display:flex; align-items:center; gap:6px; }
+  .sw { width:14px; height:14px; border-radius:4px; display:inline-block; }
+  .note { font-size:13px; color:var(--mut); line-height:1.6; }
+  code { background:#f1f5f9; padding:1px 6px; border-radius:5px; font-size:12px; }
+</style></head>
+<body><div class="wrap">
+  <h1>KineOne-WM · 反事实推演 Demo</h1>
+  <p class="lead">动作条件化世界模型（CounterfactualRollout）在合成 latent 上的 what-if 可视化 ·
+      同一初始场景 + 同一连续臂指令，仅切换离散 do(x) 介入，未来即分叉。</p>
+  <div class="metrics"><div class="metric"><div class="m-v">64</div><div class="m-k">latent 维度</div></div><div class="metric"><div class="m-v">24</div><div class="m-k">推演步数 H</div></div><div class="metric"><div class="m-v">0.056</div><div class="m-k">撤支撑 终态分歧</div></div><div class="metric"><div class="m-v">0.051</div><div class="m-k">断接触 终态分歧</div></div><div class="metric"><div class="m-v">0.064</div><div class="m-k">随机 终态分歧</div></div><div class="metric"><div class="m-v">60.4%</div><div class="m-k">前2主成分解释率</div></div></div>
+  
+    <div class="card">
+      <h3>轨迹 PCA 投影（默认未来 vs 反事实未来）</h3>
+      <p class="sub">每条折线 = 24 步 latent 轨迹（token 均值），按前 2 主成分投影；
+         前 2 主成分解释方差 60.4%。起点 ● 重合，随后因 do(x) 不同而分叉。</p>
+      <svg viewBox="0 0 720 420" width="100%" preserveAspectRatio="xMidYMid meet">
+        <rect x="0" y="0" width="720" height="420" fill="#f8fafc" rx="10"/>
+        <line x1="46" y1="210" x2="674" y2="210" stroke="#e2e8f0"/>
+        <line x1="360" y1="46" x2="360" y2="374" stroke="#e2e8f0"/>
+        <polyline points="657.6,53.4 411.1,327.7 239.2,367.5 194.0,191.1 129.9,67.6 114.9,56.8 103.3,188.7 76.9,236.8 82.6,214.0 95.0,207.2 74.7,175.7 64.1,136.6 56.7,139.5 53.2,143.1 65.7,157.8 69.7,201.3 57.5,204.9 53.3,181.1 54.8,130.1 48.7,97.9 46.0,111.6 54.8,176.3 60.9,223.1 58.7,219.7" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><polyline points="657.6,53.4 411.1,327.7 239.2,367.5 194.0,191.1 129.9,67.6 114.9,56.8 103.3,188.7 76.9,236.8 82.6,214.0 95.0,207.2 74.7,175.7 64.1,136.6 56.7,139.5 53.2,143.1 65.7,157.8 69.7,201.3 57.5,204.9 53.3,181.1 54.8,130.1 48.7,97.9 46.0,111.6 54.8,176.3 60.9,223.1 58.7,219.7" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><polyline points="663.9,46.0 418.2,316.9 244.6,363.7 196.9,201.2 135.6,73.0 128.1,62.8 121.1,200.4 89.5,243.3 96.7,214.5 112.6,218.1 88.6,198.5 81.8,156.9 71.8,154.9 65.8,151.1 81.1,164.1 86.3,205.5 71.4,211.3 68.3,192.7 70.5,152.1 64.3,123.0 62.5,131.9 69.2,186.1 75.0,217.2 73.3,211.9" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><polyline points="668.7,48.9 427.9,326.4 253.8,370.4 209.1,200.0 142.1,71.2 132.2,58.3 120.5,200.7 91.0,245.3 100.4,214.6 120.9,212.9 96.8,190.5 83.7,153.6 73.2,155.0 70.6,150.5 87.7,160.6 92.2,202.5 76.0,210.9 71.3,188.2 73.8,141.6 69.6,115.1 67.6,133.2 72.6,192.5 79.2,220.2 79.1,204.6" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle cx="657.6" cy="53.4" r="5" fill="#2563eb"/><circle cx="657.6" cy="53.4" r="5" fill="#dc2626"/><circle cx="663.9" cy="46.0" r="5" fill="#ea580c"/><circle cx="668.7" cy="48.9" r="5" fill="#16a34a"/>
+      </svg>
+      <div class="legend"><div class="lg"><span class="sw" style="background:#2563eb"></span>无介入 (no-op)</div><div class="lg"><span class="sw" style="background:#dc2626"></span>撤支撑 (remove_support)</div><div class="lg"><span class="sw" style="background:#ea580c"></span>断接触 (break_contact)</div><div class="lg"><span class="sw" style="background:#16a34a"></span>随机 (neg-control)</div></div>
+    </div>
+  
+    <div class="card">
+      <h3>逐步分歧曲线（默认 vs 反事实，token 均值 L2）</h3>
+      <p class="sub">横轴=步数，纵轴=默认未来与对应反事实未来 latent 的 L2 距离。
+         分歧随时间累积，证明世界模型在"想象"不同结局。</p>
+      <svg viewBox="0 0 720 320" width="100%" preserveAspectRatio="xMidYMid meet">
+        <rect x="0" y="0" width="720" height="320" fill="#f8fafc" rx="10"/>
+        <line x1="46" y1="274.0" x2="674" y2="274.0" stroke="#eef2f7"/><line x1="46" y1="217.0" x2="674" y2="217.0" stroke="#eef2f7"/><line x1="46" y1="160.0" x2="674" y2="160.0" stroke="#eef2f7"/><line x1="46" y1="103.0" x2="674" y2="103.0" stroke="#eef2f7"/><line x1="46" y1="46.0" x2="674" y2="46.0" stroke="#eef2f7"/>
+        <polyline points="46.0,217.9 73.3,191.3 100.6,168.0 127.9,175.5 155.2,172.1 182.5,150.1 209.8,145.0 237.1,161.2 264.4,145.5 291.7,131.3 319.0,112.7 346.3,99.8 373.7,121.2 401.0,145.8 428.3,132.0 455.6,112.6 482.9,113.7 510.2,107.1 537.5,98.9 564.8,100.2 592.1,113.0 619.4,141.3 646.7,156.1 674.0,146.0" fill="none" stroke="#dc2626" stroke-width="2.5"/><polyline points="46.0,205.7 73.3,193.8 100.6,194.2 127.9,194.6 155.2,194.9 182.5,167.0 209.8,172.7 237.1,183.1 264.4,155.2 291.7,125.0 319.0,119.1 346.3,119.8 373.7,127.7 401.0,141.4 428.3,130.7 455.6,123.9 482.9,138.8 510.2,144.6 537.5,126.4 564.8,108.3 592.1,107.0 619.4,137.7 646.7,165.0 674.0,154.0" fill="none" stroke="#ea580c" stroke-width="2.5"/><polyline points="46.0,204.3 73.3,184.2 100.6,178.2 127.9,176.8 155.2,180.5 182.5,146.1 209.8,138.1 237.1,140.2 264.4,112.9 291.7,66.7 319.0,72.4 346.3,89.2 373.7,108.7 401.0,111.3 428.3,72.6 455.6,77.2 482.9,104.3 510.2,120.5 537.5,114.4 564.8,77.0 592.1,66.8 619.4,113.0 646.7,129.4 674.0,116.2" fill="none" stroke="#16a34a" stroke-width="2.5"/>
+      </svg>
+      <div class="legend"><div class="lg"><span class="sw" style="background:#dc2626"></span>撤支撑 (remove_support)</div><div class="lg"><span class="sw" style="background:#ea580c"></span>断接触 (break_contact)</div><div class="lg"><span class="sw" style="background:#16a34a"></span>随机 (neg-control)</div></div>
+    </div>
+  <div class="card">
+    <h3>这证明了什么</h3>
+    <p class="note">传统编码器/评测（如白泽式基准）只能<strong>描述</strong>已发生的画面；
+        KineOne-WM 在此之上叠加了<strong>反事实推演</strong>：给定相同前提，它能想象"如果当时撤掉支撑 /
+        断开接触，场景会怎样演化"，并量化两种结局的差距。<br>
+        生产形态：把合成 latent 换成 V-JEPA 2 真实特征 + 私有训练权重（权重/动作标注/后训练配方闭源），
+        即可对真实视频做物理反事实问答。本页仅用合成 latent 演示<strong>引擎本身</strong>。</p>
+  </div>
+</div></body></html>
