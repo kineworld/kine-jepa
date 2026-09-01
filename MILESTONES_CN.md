@@ -30,7 +30,10 @@
 | 真实特征 | 本地 1.3GB V-JEPA 2 权重离线编码 → 真实 1024-d 特征端到端 | `real_feature_smoke.py`（`080d802`），分歧 0.0623 |
 | 后训练证明 | moat recipe 在合成动力学 teacher-forcing 收敛 | `posttrain.py`（`f5d9170`），rollout MSE ↓63.7% |
 | 真实特征后训练 | 同一配方在真实 V-JEPA 2 特征上收敛（留一 ↓30%） | `real_feature_posttrain.py`（`e33e303`） |
-| 统一证据台 | 能力证据台 8→10 支柱（内嵌可交互 demo + GPU 评测就绪态） | `kineworld_capability_deck.html`（`9102e94`，21KB） |
+| 统一证据台 | 能力证据台 8→10 支柱（内嵌可交互 demo + GPU 实测） | `kineworld_capability_deck.html`（`b4447f1`，22KB） |
+| GPU 评测跑通 | RTX 5070 Ti Laptop（CUDA）跑完 98 条合成：901.7s，≈160× vs CPU | `bench_report.json` / `bench_report.html`（`b4447f1`） |
+| 分辨率扫描 | 64/128/256 三档吞吐扫描，回应「降采样省算力」质疑 | `gpu_resolution_sweep.py` / `gpu_sweep.html`（`5ad7529`） |
+| 发布闸门 | 申报包自检器：产物存在 / 引用不断链 / HTML 自包含 / 脚本可编译 | `validate_package.py`（`c12b403`，全绿） |
 | 申报叙事 | 非技术一页叙事 + 开源仓库 README | `PITCH_CN.md` / `README.md`（`4bf8952`） |
 
 ## 4. 即将里程碑（申报窗口）
@@ -39,7 +42,8 @@
 |---|---|---|
 | **2026-09-20** | 引航陪跑创业营申请提交 | 本证据台 + PITCH_CN 作技术可行性佐证（已就绪） |
 | **2026-10-01** | 合肥国资申报 + 公司注册 | 差异化定位（可规划 / 反事实 + 商用合规 + 单设备部署）已就绪 |
-| 用户 GPU 就绪 | KINE-Bench 真实评测（98 条片段，TEMP/MOT/EVT 硬数字） | 用户 GPU 上跑 `bench_gpu_launcher.py` |
+| ~~用户 GPU 就绪~~ **已完成** | ~~KINE-Bench 评测~~ → CUDA 链路已跑通（98 条合成，901.7s，≈160× vs CPU） | ✅ 本机 RTX 5070 Ti 完成（`b4447f1`） |
+| 真实片段就绪 | 真实 98 条视频跑 KINE-Bench，取 TEMP/MOT/**EVT** 硬数字 | 真实视频文件夹 → `--data-dir`（EVT-1 另需真实 events.json） |
 | 融资 / 数据就绪 | 真实轨迹后训练 → 物理可信 KineOne-WM（闭源配方落地） | GPU + 标注数据 + 私有权重 |
 
 ## 5. 诚实边界
@@ -47,6 +51,7 @@
 - 当前里程碑为**架构 + moat recipe 证明**（随机初始化 / 合成动力学 / 21 对概念验证），非大规模物理预测。
 - 团队为**单人极早期**，融资后按第 2 节补齐；此页不夸大现有编制。
 - 生产形态（物理可信）方法已验证、路径明确，但需 GPU 与标注数据，属闭源配方。
+- **GPU 评测数字的性质**：已跑通的是**合成片段**（无真实运动结构），仅证明 CUDA 链路可行 + 评测协议可执行 + ≈160× 吞吐。合成下 TEMP-1 随样本量在 1.000（98 条）/ 0.8947（32 条）/ 0.000（2 条 256px）间跳变、MOT-1 r ≈ 0、CAU-1 的 AUC 属 degraded（`auc_do=null`）——**这些分数不是竞争力证据**，真实能力数字须喂真实视频重跑。
 
 ---
 *本页与 `PITCH_CN.md` / `kineworld_capability_deck.html` 构成完整申报包；所有 commit 哈希可在 `zoahdev/kine-jepa` 公开核验。*
