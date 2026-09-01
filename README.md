@@ -60,9 +60,13 @@ kineworld_jepa/
   vit.py       3D tubelet ViT 编码器
   masking.py   时空多块掩码
   jepa.py      KineOne-WM-Latent（编码器 + EMA 目标编码器 + 预测器）
+  causal.py    因果干预头（do(x) token）+ CausalKineJEPA（接口公开，训练产物闭源）
+  rollout.py   动作条件化世界模型（ActionEmbedder / ActionRollout / LatentPlanner，CEM）
   dataset.py   kine-datapipe 视频片段数据集 + 合成冒烟数据
   train.py     单卡训练循环与实验日志
 ```
+
+> `causal.py` 与 `rollout.py` 公开的是**接口与算法结构**；其依赖的具体训练权重、轨迹动作标注与后训练配方属于技术壁垒，闭源（见 kine-bench 的 `OPEN_SOURCE_BOUNDARY.md`）。
 
 ## 路线图
 
