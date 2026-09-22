@@ -1,0 +1,17 @@
+# 仅当使用 stable-worldmodel 的规划求解器时才需要。
+#   代码入口：kineworld_jepa/interop/swm.py
+#   对照实验：scripts/swm_planning_comparison.py（产物 EXPERIMENTS/SWM-PLANNING-v0/summary.json）
+#
+# CI 不安装本文件，也不安装下面任何一项。kine-jepa 的基础测试只需要 requirements.txt，
+# 适配器本身在 stable-worldmodel 缺席时仍可导入，依赖它的测试会如实 Skip 而不是假装通过。
+#
+# stable-worldmodel 0.1.1 的 import 路径会走到 envs / wrapper，因此除它自己声明的
+# torch/numpy/gymnasium/einops/loguru/tabulate 之外，还需要下面这两个，否则
+# `import stable_worldmodel` 会以 ModuleNotFoundError: cv2 / imageio 结束。
+# 上游在此处给的是 `stable-worldmodel[env]` extra，那个会把整条 MuJoCo / ALE 栈拉下来，
+# 而规划路径并不需要仿真环境，所以这里显式只补最小的两个。
+#
+# 许可证：stable-worldmodel 为 MIT。其依赖各自另算，见 world-models/open-source-adoption.md。
+stable-worldmodel>=0.1.1
+opencv-python-headless
+imageio
