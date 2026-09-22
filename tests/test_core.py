@@ -95,6 +95,23 @@ ALL = [
     test_synthetic_dataset,
 ]
 
+
+import unittest
+
+class TestSuite(unittest.TestCase):
+    def test_cosine_schedule(self):
+        test_cosine_schedule()
+    def test_mask_schedule(self):
+        test_mask_schedule()
+    def test_mask_exact_count_and_partition(self):
+        test_mask_exact_count_and_partition()
+    def test_forward_loss_and_ratio(self):
+        test_forward_loss_and_ratio()
+    def test_target_encoder_updates(self):
+        test_target_encoder_updates()
+    def test_synthetic_dataset(self):
+        test_synthetic_dataset()
+
 if __name__ == "__main__":
     for fn in ALL:
         fn()
