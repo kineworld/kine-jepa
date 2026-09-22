@@ -1,7 +1,8 @@
 {
   "experiment": "SWM-PLANNING-v0",
   "date": "2026-09-22",
-  "evidence_level": "one task, one frozen random model, 3 seeds, CPU",
+  "evidence_level": "E1",
+  "evidence_level_detail": "one task, one frozen random-initialised model, 3 seeds, CPU only; no trained checkpoint was involved",
   "task": {
     "dim": 32,
     "tokens": 24,
@@ -48,11 +49,11 @@
       ],
       "improvement_median": 4.8759,
       "wall_s": [
-        0.803,
-        0.878,
-        0.929
+        0.815,
+        0.884,
+        0.882
       ],
-      "wall_s_median": 0.878,
+      "wall_s_median": 0.882,
       "shipped_assertion": [
         false,
         true,
@@ -73,11 +74,11 @@
       ],
       "improvement_median": 87.6062,
       "wall_s": [
-        0.843,
-        0.951,
-        0.852
+        0.812,
+        0.776,
+        0.713
       ],
-      "wall_s_median": 0.852,
+      "wall_s_median": 0.776,
       "shipped_assertion": [
         true,
         true,
@@ -98,11 +99,11 @@
       ],
       "improvement_median": 27.0392,
       "wall_s": [
-        0.558,
-        0.541,
-        0.508
+        0.498,
+        0.449,
+        0.43
       ],
-      "wall_s_median": 0.541,
+      "wall_s_median": 0.449,
       "shipped_assertion": [
         true,
         true,
@@ -124,10 +125,10 @@
       "improvement_median": 1990.2767,
       "wall_s": [
         3.993,
-        4.053,
-        3.802
+        3.974,
+        3.703
       ],
-      "wall_s_median": 3.993,
+      "wall_s_median": 3.974,
       "shipped_assertion": [
         true,
         true,
@@ -148,11 +149,11 @@
       ],
       "improvement_median": 6.6036,
       "wall_s": [
-        0.479,
-        0.556,
-        0.47
+        0.525,
+        0.508,
+        0.496
       ],
-      "wall_s_median": 0.479,
+      "wall_s_median": 0.508,
       "shipped_assertion": [
         false,
         true,
@@ -173,11 +174,11 @@
       ],
       "improvement_median": 57.8778,
       "wall_s": [
-        0.476,
-        0.527,
-        0.458
+        0.497,
+        0.502,
+        0.466
       ],
-      "wall_s_median": 0.476,
+      "wall_s_median": 0.497,
       "shipped_assertion": [
         true,
         true,
@@ -199,10 +200,10 @@
       "improvement_median": 3.9478,
       "wall_s": [
         0.061,
-        0.066,
-        0.061
+        0.056,
+        0.06
       ],
-      "wall_s_median": 0.061,
+      "wall_s_median": 0.06,
       "shipped_assertion": [
         true,
         true,

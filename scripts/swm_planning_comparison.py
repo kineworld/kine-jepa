@@ -197,7 +197,9 @@ def render_markdown(summary: dict) -> str:
 环境：torch {env['torch']} / {env['device']}；上游 {upstream['package']} {upstream['version']}（{upstream['license']}，Fork 在 `kineworld/{upstream['package']}`）。
 任务：dim={task['dim']}，tokens={task['tokens']}，action_dim={task['action_dim']}，horizon={task['horizon']}，与 `tests/test_rollout.py::test_planner_reaches_goal` 同一构造。
 种子：{', '.join(str(s) for s in seeds)}；对应 off-target 基线 {', '.join(f'{b:.2f}' for b in bases)}。
-证据级别：{summary['evidence_level']}。
+证据级别：**{summary['evidence_level']}** —— {summary['evidence_level_detail']}。
+按 `GOVERNANCE.md` 证据门第 3 条，单任务结果标 `E1`，不得当作一般能力；三个种子给的是方差，
+不是把结论抬到 `E1` 以上。
 
 ## 为什么做这个
 
@@ -306,7 +308,15 @@ def main(argv: list[str] | None = None) -> int:
     summary = {
         "experiment": "SWM-PLANNING-v0",
         "date": "2026-09-22",
-        "evidence_level": "one task, one frozen random model, %d seeds, CPU" % len(args.seeds),
+        # E1 per GOVERNANCE.md: one task, one frozen random-initialised model, however many
+        # seeds. Three seeds give a variance estimate, which is why the per-seed distances
+        # are kept; it does not lift this above E1 and it says nothing about a trained
+        # checkpoint.
+        "evidence_level": "E1",
+        "evidence_level_detail": (
+            "one task, one frozen random-initialised model, %d seeds, CPU only; "
+            "no trained checkpoint was involved" % len(args.seeds)
+        ),
         "task": TASK,
         "budget": MATCHED,
         "upstream": {

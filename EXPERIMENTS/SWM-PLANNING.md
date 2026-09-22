@@ -10,7 +10,9 @@
 环境：torch 2.11.0+cu128 / cpu；上游 stable-worldmodel 0.1.1（MIT，Fork 在 `kineworld/stable-worldmodel`）。
 任务：dim=32，tokens=24，action_dim=4，horizon=8，与 `tests/test_rollout.py::test_planner_reaches_goal` 同一构造。
 种子：2, 3, 4；对应 off-target 基线 25.88, 12.20, 47.66。
-证据级别：one task, one frozen random model, 3 seeds, CPU。
+证据级别：**E1** —— one task, one frozen random-initialised model, 3 seeds, CPU only; no trained checkpoint was involved。
+按 `GOVERNANCE.md` 证据门第 3 条，单任务结果标 `E1`，不得当作一般能力；三个种子给的是方差，
+不是把结论抬到 `E1` 以上。
 
 ## 为什么做这个
 
@@ -27,13 +29,13 @@
 
 | 方案 | 中位 d2 | 中位改善 | 中位耗时 s | 仓库既有断言 |
 | --- | ---: | ---: | ---: | --- |
-| `kinejepa_box` | 8.2277 | 4.88× | 0.878 | mixed |
-| `kinejepa_unbounded` | 0.2121 | 87.61× | 0.852 | PASS |
-| `swm_cem_matched` | 0.9572 | 27.04× | 0.541 | PASS |
-| `swm_cem_default` | 0.0061 | 1990.28× | 3.993 | PASS |
-| `swm_icem` | 7.2166 | 6.60× | 0.479 | mixed |
-| `swm_mppi` | 0.5268 | 57.88× | 0.476 | PASS |
-| `swm_predictive` | 6.5560 | 3.95× | 0.061 | mixed |
+| `kinejepa_box` | 8.2277 | 4.88× | 0.882 | mixed |
+| `kinejepa_unbounded` | 0.2121 | 87.61× | 0.776 | PASS |
+| `swm_cem_matched` | 0.9572 | 27.04× | 0.449 | PASS |
+| `swm_cem_default` | 0.0061 | 1990.28× | 3.974 | PASS |
+| `swm_icem` | 7.2166 | 6.60× | 0.508 | mixed |
+| `swm_mppi` | 0.5268 | 57.88× | 0.497 | PASS |
+| `swm_predictive` | 6.5560 | 3.95× | 0.060 | mixed |
 
 ## 读法
 
@@ -49,8 +51,8 @@
 
 3. **上游 CEM，预算对齐**（`swm_cem_matched`：64 采样 / 8 步 / 6 精英 / 初始 σ=0.5）
    中位 d2 0.9572，中位改善 27.04×，
-   断言 PASS，中位耗时 0.541s
-   （现状方案 0.878s，即 1.62 分之一）。同预算下不更差。
+   断言 PASS，中位耗时 0.449s
+   （现状方案 0.882s，即 1.96 分之一）。同预算下不更差。
 
 4. **上游 CEM，库默认值**（`swm_cem_default`：300 采样 / 30 步 / 30 精英 / σ=1.0，
    我方**未调参**）中位 d2 0.0061，中位改善
@@ -66,7 +68,7 @@
    符合单发采样的预期。两者都不作为改用上游的理由。
 
 7. **一处对不上的既有注释**：`tests/test_rollout.py` 写 "64 candidates x 8 iters
-   (~140s on a laptop)"，本机实测现状方案中位 0.878s，相差约
+   (~140s on a laptop)"，本机实测现状方案中位 0.882s，相差约
    159 分之一。这里只记录实测，
    **不改那条注释**——改它属于另一个改动集。
 
