@@ -39,6 +39,17 @@ def test_causal_forward():
     assert [p.grad for p in wrap.base.encoder.parameters() if p.grad is not None] == []
 
 ALL = [test_head_changes_features, test_encoder_frozen, test_causal_forward]
+
+import unittest
+
+class TestSuite(unittest.TestCase):
+    def test_head_changes_features(self):
+        test_head_changes_features()
+    def test_encoder_frozen(self):
+        test_encoder_frozen()
+    def test_causal_forward(self):
+        test_causal_forward()
+
 if __name__ == "__main__":
     for fn in ALL:
         fn(); print("PASS", fn.__name__)
