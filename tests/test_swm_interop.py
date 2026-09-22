@@ -9,11 +9,18 @@ silently corrupt every number downstream: the adapter's cost must equal the dist
 cost zero. An off-by-one on the action axis, a pool over the wrong dimension, or a
 mean-vs-sum reduction drift each turn one of them red.
 
-The last one exercises ``stable-worldmodel`` itself and therefore **skips, with a reason,
-when the package is absent** -- CI installs ``requirements.txt`` only. A skip is reported
-as a skip; it is never counted as a pass. The structural test below exists to stop the
+The rest exercise ``stable-worldmodel`` itself and therefore **skip, with a reason, when
+the package is absent** -- CI installs ``requirements.txt`` only. A skip is reported as a
+skip; it is never counted as a pass. The structural test near the top exists to stop the
 other failure mode: someone moving the upstream import to module scope, which would turn
 CI red with ``ModuleNotFoundError`` instead of a clear skip.
+
+``test_upstream_solvers_do_not_clamp_unless_asked`` is a regression guard for a trap that
+already cost this repository one wrong published result: only ``icem`` honours the action
+space handed to ``configure``, so comparing ``cem`` or ``mppi`` against ``LatentPlanner``
+(as shipped, which clamps) varies the search space as well as the search rule. The
+distances are then attributed to the wrong one. That test fails if the wrapper ever stops
+being explicit about which of the two it is doing.
 """
 
 import ast
@@ -130,13 +137,20 @@ def test_goal_generating_actions_cost_zero():
           f"cost(a_star)={cost_star:.2e} cost(random)={cost_offtarget:.2f} base={base:.2f}")
 
 
-def test_swm_solver_beats_hand_rolled_cem():
-    """Matched budget, same task: upstream CEM and MPPI against LatentPlanner.
+def test_swm_solvers_reach_the_goal_at_matched_budget():
+    """Matched budget, same task: upstream CEM and MPPI reach the goal.
+
+    This test asserts **reachability**, not superiority. It deliberately does not claim to
+    beat ``LatentPlanner``: measured at this budget the two are in the same tier, and at
+    matched action space neither wins by much (see EXPERIMENTS/SWM-PLANNING-v0, revision
+    2). Its earlier name said "beats_hand_rolled_cem" while asserting no such thing, which
+    is a worse failure than a wrong threshold -- a reader trusts the name. The hand-rolled
+    distance is still measured and printed so a regression in either direction is visible.
 
     Bounds are set well clear of the measured values (CEM 0.96, MPPI 0.30 against an
-    off-target baseline of 25.88 at this seed -- see EXPERIMENTS/SWM-PLANNING-v0) so the
-    test is not a restatement of one run. It skips, with a reason, when the upstream
-    package is absent rather than reporting a pass it did not earn.
+    off-target baseline of 25.88 at this seed) so the test is not a restatement of one run.
+    It skips, with a reason, when the upstream package is absent rather than reporting a
+    pass it did not earn.
     """
     if not swm_available():
         raise unittest.SkipTest(
@@ -167,14 +181,77 @@ def test_swm_solver_beats_hand_rolled_cem():
     )
 
     ok = all(d < 2.0 and d < 0.1 * base for d in observed.values())
-    check("test_swm_solver_beats_hand_rolled_cem", ok,
+    check("test_swm_solvers_reach_the_goal_at_matched_budget", ok,
           f"base={base:.2f} swm_cem={observed['cem']:.2f} swm_mppi={observed['mppi']:.2f} "
-          f"kinejepa_cem={hand_loss:.2f}")
+          f"kinejepa_cem={hand_loss:.2f} (reachability only; no superiority claimed)")
+
+
+def test_upstream_solvers_do_not_clamp_unless_asked():
+    """Only ``icem`` honours the action space; the wrapper must say which mode it is in.
+
+    Two guarantees, and the second is the one that catches a real published error:
+
+    1. With ``enforce_action_bounds=True`` every solver's returned actions are inside
+       ``[-1, 1]``. A ``LatentPlanner`` comparison in this mode is an equal-box one.
+    2. With the flag off -- the library's own behaviour -- at least one solver leaves the
+       box. That is what makes "the box, not the search rule" an explanation rather than a
+       hypothesis, and it is why the first experiment's iCEM row was wrong: iCEM clamps by
+       itself, so it was the only upstream arm that never left the box while CEM and MPPI
+       did.
+
+    The margin on (2) is large (``cem`` peaks above 5 against a bound of 1), so this does
+    not turn red on ordinary sampling noise. The determinism comes from fixed seeds, as
+    everywhere else in this suite.
+    """
+    if not swm_available():
+        raise unittest.SkipTest(
+            "stable-worldmodel not installed; pip install -r requirements-swm.txt"
+        )
+
+    model, latent0, goal, _, _ = build_task(0)
+    probe = {"cem": MATCHED, "mppi": MATCHED, "predictive_sampling": {"num_samples": 64}}
+
+    free_peaks = {}
+    boxed_peaks = {}
+    for solver, kwargs in probe.items():
+        _, _, free_peaks[solver] = _peak(
+            model, latent0, goal, solver, -1.0, 1.0, False, kwargs
+        )
+        _, _, boxed_peaks[solver] = _peak(
+            model, latent0, goal, solver, -1.0, 1.0, True, kwargs
+        )
+
+    boxed_ok = all(p <= 1.0 + 1e-6 for p in boxed_peaks.values())
+    check("test_upstream_solvers_clamp_when_asked", boxed_ok,
+          "boxed peaks: " + ", ".join(f"{k}={v:.3f}" for k, v in boxed_peaks.items()))
+
+    escapes = {k: v for k, v in free_peaks.items() if v > 1.0 + 1e-6}
+    check("test_upstream_solvers_ignore_action_bounds_by_default", bool(escapes),
+          "unclamped peaks: " + ", ".join(f"{k}={v:.3f}" for k, v in free_peaks.items()))
+
+
+def _peak(model, latent0, goal, solver, low, high, enforce, kwargs):
+    """Run one solver and return (distance, seconds, max|action|)."""
+    planner = SWMPlanner(
+        model,
+        goal_latent=goal,
+        action_dim=TASK["action_dim"],
+        horizon=TASK["horizon"],
+        solver=solver,
+        seed=0,
+        action_low=low,
+        action_high=high,
+        enforce_action_bounds=enforce,
+        **kwargs,
+    )
+    actions, distance, elapsed = planner.plan(latent0)
+    return distance, elapsed, float(actions.abs().max().item())
 
 
 if __name__ == "__main__":
     test_adapter_has_no_module_level_upstream_import()
     test_adapter_cost_equals_latent_planner_distance()
     test_goal_generating_actions_cost_zero()
-    test_swm_solver_beats_hand_rolled_cem()
+    test_swm_solvers_reach_the_goal_at_matched_budget()
+    test_upstream_solvers_do_not_clamp_unless_asked()
     print(f"\nall {len(PASSED)} swm-interop tests passed")
