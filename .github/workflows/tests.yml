@@ -1,13 +1,23 @@
 name: tests
 
-# The suite was previously only runnable by hand, one file at a time, and the
-# standard runner collected 5 of the 28 tests while still reporting OK. This job
-# exists so that a green check means every test ran.
+# The suite was previously only runnable by hand, one file at a time, and the standard
+# runner collected 5 of the 28 tests while still reporting OK. This job exists so that a
+# green check means every test ran.
 #
-# Expect the first run to be red. It is red because it finally reaches
-# tests/test_rollout.py::test_planner_reaches_goal, which fails deterministically on
-# main (see issue #3). That is the point of adding the job, not a regression
-# introduced by it.
+# The job itself is the organisation's reusable one: kineworld/.github supplies the
+# checkout, the interpreter, the collection guard and the collection check. This file is
+# only the three lines of adoption plus the two things that are genuinely local -- the CPU
+# torch wheel, because CI has no GPU and the CUDA index pulls ~2.5 GB, and the concurrency
+# group.
+#
+# It used to be a hand-written copy of that job, and the copy had already drifted: it ran
+# the collection guard *before* the suite, so a collection failure was reported without the
+# suite's own diagnostics beside it. That is the argument for the reusable form, made by
+# this file against itself. Audit: kineworld/.github#3.
+#
+# Note what this job does not promise: that a local run agrees with it. The planner test
+# passes here and fails on a local CUDA build of torch, because the assertion is about a
+# ratio whose denominator is build-dependent. See kineworld/kine-jepa#3.
 
 on:
   push:
@@ -23,32 +33,7 @@ concurrency:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - name: Check out
-        # actions/checkout v4
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-
-      - name: Set up Python
-        # actions/setup-python v5
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          # CPU wheels only: CI has no GPU and the CUDA index would pull ~2.5 GB.
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
-
-      - name: Confirm every test in tests/ is visible to the runner
-        # Guards the defect in issue #3 directly. Runs before the suite, so a collection
-        # regression is reported as a collection regression rather than as a mystery
-        # green run. The expected count is derived from the source with ast, because a
-        # hand-maintained number is the same class of mistake as the bug being fixed.
-        run: python tests/check_collection.py
-
-      - name: Run the suite
-        run: python -m unittest discover -s tests -t . -v
+    uses: kineworld/.github/.github/workflows/python-tests.yml@main
+    with:
+      install: "-r requirements.txt"
+      post-install: "pip install torch --index-url https://download.pytorch.org/whl/cpu"
