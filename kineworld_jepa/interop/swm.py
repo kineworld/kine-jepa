@@ -96,6 +96,9 @@ class SWMCostModel(torch.nn.Module):
         rollout: an ``ActionRollout`` (or ``VJEPA2AlignedRollout``, which shares the
             ``(N, T, A) -> list[(N, V, D)]`` calling convention).
         action_dim: flattened action dimension. Read from the rollout when omitted.
+        action_low / action_high: when given, every candidate is clipped into this box
+            before the dynamics see it. Off by default because upstream solvers (except
+            ``ICEMSolver``) do not clamp; see :meth:`_project`.
 
     Example:
         >>> from kineworld_jepa.rollout import ActionRollout
@@ -110,7 +113,13 @@ class SWMCostModel(torch.nn.Module):
         (1, 8)
     """
 
-    def __init__(self, rollout: torch.nn.Module, action_dim: int | None = None):
+    def __init__(
+        self,
+        rollout: torch.nn.Module,
+        action_dim: int | None = None,
+        action_low: float | None = None,
+        action_high: float | None = None,
+    ):
         super().__init__()
         self.dynamics = rollout
         resolved = action_dim
@@ -121,6 +130,30 @@ class SWMCostModel(torch.nn.Module):
                 "action_dim is required when the rollout does not expose one"
             )
         self.action_dim = int(resolved)
+        if (action_low is None) != (action_high is None):
+            raise ValueError("pass both action_low and action_high, or neither")
+        self.action_low = action_low
+        self.action_high = action_high
+
+    def _project(self, actions: torch.Tensor) -> torch.Tensor:
+        """Clip ``actions`` into ``[action_low, action_high]`` when bounds are set.
+
+        Opt-in, and off by default, because it is **not** upstream behaviour: of the eight
+        solvers, only ``ICEMSolver`` reads ``configure(action_space=...)`` and clamps its
+        samples. ``CEMSolver``, ``MPPISolver`` and ``PredictiveSamplingSolver`` record the
+        space and never enforce it -- ``CEMSolver.configure`` merely warns when the space is
+        not a ``Box``. So an unbounded upstream solver can propose actions a real actuator
+        cannot execute, and kine-jepa's ``LatentPlanner`` is the one that clamps.
+
+        Turning this on narrows the search to the same box ``LatentPlanner`` uses, which is
+        what makes a like-for-like comparison possible. It is applied to the candidates the
+        dynamics actually see, so the elite selection also never scores an out-of-box
+        action -- clipping only the returned sequence would leave the search exploring
+        outside the box and then reporting a plan it never evaluated.
+        """
+        if self.action_low is None:
+            return actions
+        return actions.clamp(self.action_low, self.action_high)
 
     # -- the newer `Dynamics` surface, implemented under its own names ----------------
 
@@ -167,6 +200,9 @@ class SWMCostModel(torch.nn.Module):
         if latent.shape[1] == 1 and int(action_candidates.shape[1]) > 1:
             latent = latent.expand(B, int(action_candidates.shape[1]), V, D)
             S = int(action_candidates.shape[1])
+
+        # Opt-in actuator projection; a no-op unless bounds were passed. See `_project`.
+        action_candidates = self._project(action_candidates)
 
         flat_latent = latent.reshape(B * S, V, D)
         flat_actions = action_candidates.reshape(
@@ -220,10 +256,14 @@ class SWMPlanner:
     Differences from ``LatentPlanner`` that a caller should know about, because they are
     properties of the upstream solvers and not of this wrapper:
 
-    * Upstream samplers draw an unclamped Gaussian. ``LatentPlanner`` clamps every
-      candidate into ``[action_low, action_high]``; the solvers here do not, so the
-      search space is strictly larger. Pass a bounded action space only for the
-      bookkeeping in ``configure`` -- it is not enforced on the samples.
+    * Upstream samplers draw an unclamped Gaussian, **except** ``ICEMSolver``, which reads
+      the ``action_space`` handed to ``configure`` and clamps its candidates. So of the six
+      solvers here, only ``icem`` honours ``action_low`` / ``action_high`` natively;
+      ``cem``, ``mppi`` and ``predictive_sampling`` ignore them. ``LatentPlanner`` clamps
+      every candidate. Pass ``enforce_action_bounds=True`` to clip the candidates those
+      solvers see, which is what makes an equal-box comparison possible -- otherwise a
+      comparison against ``LatentPlanner`` varies two things at once (solver *and* search
+      space), and the difference will be attributed to the wrong one.
     * ``LatentPlanner.plan`` returns the single best elite. ``CEMSolver`` and
       ``ICEMSolver`` return the *mean* of the elites, ``PredictiveSamplingSolver`` the
       single best sample. This wrapper re-evaluates whatever the solver returns, so the
@@ -239,7 +279,11 @@ class SWMPlanner:
             ``solver_kwargs``.
         seed: passed to the solver's own generator.
         device: torch device string.
-        action_low / action_high: recorded in the action space handed to ``configure``.
+        action_low / action_high: the action box. Recorded in the space handed to
+            ``configure`` (honoured natively by ``icem``), and enforced on the candidates
+            of every solver when ``enforce_action_bounds`` is set.
+        enforce_action_bounds: clip candidates into ``[action_low, action_high]`` before
+            the dynamics see them. Default ``False`` reproduces upstream behaviour exactly.
         **solver_kwargs: forwarded to the solver constructor, e.g. ``num_samples=64``,
             ``n_steps=8``, ``topk=6``, ``var_scale=0.5``.
     """
@@ -257,6 +301,7 @@ class SWMPlanner:
         device: str = "cpu",
         action_low: float = -1.0,
         action_high: float = 1.0,
+        enforce_action_bounds: bool = False,
         **solver_kwargs: Any,
     ):
         if not swm_available():
@@ -275,8 +320,14 @@ class SWMPlanner:
         self.device = device
         self.action_low = action_low
         self.action_high = action_high
+        self.enforce_action_bounds = bool(enforce_action_bounds)
         self.solver_name = solver
-        self.cost_model = SWMCostModel(rollout, action_dim=self.action_dim)
+        self.cost_model = SWMCostModel(
+            rollout,
+            action_dim=self.action_dim,
+            action_low=action_low if self.enforce_action_bounds else None,
+            action_high=action_high if self.enforce_action_bounds else None,
+        )
 
         from stable_worldmodel import solver as swm_solver
 
@@ -331,6 +382,12 @@ class SWMPlanner:
         outputs = self.solver.solve(info)
         elapsed = time.perf_counter() - started
         actions = outputs["actions"].to(latent0.device)
+        # With bounds enforced the candidates are already clipped, so this is a no-op in
+        # practice; it is kept explicit so the returned plan is in-box by construction and
+        # not by an argument about convexity. Without it, `icem` is in-box (it clamps
+        # natively) while `cem` is not -- a silent asymmetry between arms.
+        if self.enforce_action_bounds:
+            actions = actions.clamp(self.action_low, self.action_high)
         return actions, self._achieved_distance(latent0, actions), elapsed
 
 
