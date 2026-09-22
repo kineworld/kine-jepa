@@ -18,6 +18,15 @@ def test_same_seed_control_differs_from_fall():
     b = make_clip(True, 8, 32, seed=7)
     assert (a - b).abs().mean() > 0.01
 
+
+import unittest
+
+class TestSuite(unittest.TestCase):
+    def test_shapes_and_labels(self):
+        test_shapes_and_labels()
+    def test_same_seed_control_differs_from_fall(self):
+        test_same_seed_control_differs_from_fall()
+
 if __name__ == "__main__":
     test_shapes_and_labels(); test_same_seed_control_differs_from_fall()
     print("PASS test_pairs")
