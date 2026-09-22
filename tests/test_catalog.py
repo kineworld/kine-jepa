@@ -5,7 +5,7 @@ from kineworld_jepa.catalog import CatalogDataset
 
 def test_synthetic_catalog(tmp_path=None):
     from pathlib import Path as P
-    p = P("/tmp/cat.json")
+    p = P("cat.json")
     p.write_text(json.dumps({"pairs": [
         {"id": "syn-0000", "source": "synthetic", "control": {"seed": 1}, "intervene": {"seed": 1}},
         {"id": "win-0000", "source": "missing.mp4", "pre": [0, 16], "post": [17, 33]},
@@ -20,6 +20,13 @@ def test_synthetic_catalog(tmp_path=None):
     # missing video falls back to synthetic, still returns a tensor
     v3, _ = ds[2]
     assert v3.shape == (3, 8, 32, 32)
+
+
+import unittest
+
+class TestSuite(unittest.TestCase):
+    def test_synthetic_catalog(self):
+        test_synthetic_catalog()
 
 if __name__ == "__main__":
     test_synthetic_catalog()
