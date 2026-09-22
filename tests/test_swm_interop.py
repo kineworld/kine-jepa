@@ -172,6 +172,19 @@ def test_swm_solver_beats_hand_rolled_cem():
           f"kinejepa_cem={hand_loss:.2f}")
 
 
+
+import unittest
+
+class TestSuite(unittest.TestCase):
+    def test_adapter_has_no_module_level_upstream_import(self):
+        test_adapter_has_no_module_level_upstream_import()
+    def test_adapter_cost_equals_latent_planner_distance(self):
+        test_adapter_cost_equals_latent_planner_distance()
+    def test_goal_generating_actions_cost_zero(self):
+        test_goal_generating_actions_cost_zero()
+    def test_swm_solver_beats_hand_rolled_cem(self):
+        test_swm_solver_beats_hand_rolled_cem()
+
 if __name__ == "__main__":
     test_adapter_has_no_module_level_upstream_import()
     test_adapter_cost_equals_latent_planner_distance()
