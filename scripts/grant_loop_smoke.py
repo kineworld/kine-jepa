@@ -3,8 +3,13 @@
 from __future__ import annotations
 import hashlib, hmac, json, secrets, time
 from pathlib import Path
-SECRET = b"kineworld-dev-hmac-not-for-hardware"
-OUT = Path("experiments/GRANT-LOOP-v0")
+SECRET = b"kineworld-dev-hmac-not-for-hardware"  # dev key, public on purpose; see GRANT-LOOP.md
+# Uppercase, and it must stay uppercase. The record is `EXPERIMENTS/GRANT-LOOP.md` and
+# `.gitignore` carries an `experiments/` scratch rule (negated for `EXPERIMENTS/`). Writing
+# to the lowercase spelling only ever worked on a case-insensitive filesystem: on Linux it
+# would create a second, differently-named directory that the ignore rule does cover, so the
+# run's own outputs could never be published. `tests/test_grant.py` pins this.
+OUT = Path("EXPERIMENTS/GRANT-LOOP-v0")
 RISK_DENY = 0.4
 def sign(payload):
     raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
