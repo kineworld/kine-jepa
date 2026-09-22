@@ -18,6 +18,19 @@ def test_risk_overrides_ticket():
     t = issue("kineone-wm-sim-0", "sim.arm.gripper", "close_gripper", "pick")
     assert decide({"action": "close_gripper", "purpose": "pick", "pred_risk": 0.9}, t) == "DENY"
 
+
+import unittest
+
+class TestSuite(unittest.TestCase):
+    def test_missing_ticket_denies(self):
+        test_missing_ticket_denies()
+    def test_bound_ticket_allows(self):
+        test_bound_ticket_allows()
+    def test_wrong_action_denies(self):
+        test_wrong_action_denies()
+    def test_risk_overrides_ticket(self):
+        test_risk_overrides_ticket()
+
 if __name__ == "__main__":
     for fn in (test_missing_ticket_denies, test_bound_ticket_allows, test_wrong_action_denies, test_risk_overrides_ticket):
         fn(); print("PASS", fn.__name__)
