@@ -254,16 +254,25 @@ def _flag(passes: list[bool]) -> str:
 
 
 def _table(arms: dict, names: list[str]) -> str:
-    rows = [
-        "| 方案 | 中位 d2 | 中位改善 | 中位耗时 s | 返回动作 max|a| | 既有断言 |",
-        "| --- | ---: | ---: | ---: | ---: | --- |",
-    ]
+    header = "| 方案 | 中位 d2 | 中位改善 | 中位耗时 s | 返回动作峰值 | 既有断言 |"
+    divider = "| --- | ---: | ---: | ---: | ---: | --- |"
+    rows = [header, divider]
     for name in names:
         data = arms[name]
         rows.append(
             f"| `{name}` | {data['distance_median']:.4f} | {data['improvement_median']:.2f}× "
             f"| {data['wall_s_median']:.3f} | {data['action_peak_median']:.3f} "
             f"| {_flag(data['shipped_assertion'])} |"
+        )
+    # A pipe inside a cell breaks the whole table, and the breakage is invisible in the
+    # source -- it only shows up when GitHub renders it. The first version of this table
+    # had "max|a|" as a column title, which produced a nine-pipe header over seven-pipe
+    # rows. Counting the delimiters is the cheapest way to make that impossible to ship.
+    expected = header.count("|")
+    bad = [r for r in rows if r.count("|") != expected]
+    if bad:
+        raise ValueError(
+            f"markdown table row has {bad[0].count('|')} pipes, expected {expected}: {bad[0]!r}"
         )
     return "\n".join(rows)
 

@@ -68,11 +68,11 @@
       ],
       "improvement_median": 87.6062,
       "wall_s": [
-        0.883,
-        1.154,
-        1.027
+        0.874,
+        1.288,
+        0.937
       ],
-      "wall_s_median": 1.027,
+      "wall_s_median": 0.937,
       "action_peak": [
         3.0923,
         2.3328,
@@ -99,11 +99,11 @@
       ],
       "improvement_median": 27.0392,
       "wall_s": [
-        0.451,
-        0.742,
-        0.741
+        0.434,
+        0.645,
+        0.625
       ],
-      "wall_s_median": 0.741,
+      "wall_s_median": 0.625,
       "action_peak": [
         3.0168,
         1.8947,
@@ -130,11 +130,11 @@
       ],
       "improvement_median": 57.8778,
       "wall_s": [
-        0.448,
-        0.738,
-        0.7
+        0.409,
+        0.726,
+        0.628
       ],
-      "wall_s_median": 0.7,
+      "wall_s_median": 0.628,
       "action_peak": [
         2.2914,
         1.5652,
@@ -161,11 +161,11 @@
       ],
       "improvement_median": 118.6003,
       "wall_s": [
-        0.618,
-        0.726,
-        0.753
+        0.699,
+        0.717,
+        0.619
       ],
-      "wall_s_median": 0.726,
+      "wall_s_median": 0.699,
       "action_peak": [
         2.3738,
         3.7159,
@@ -192,11 +192,11 @@
       ],
       "improvement_median": 3.9478,
       "wall_s": [
-        0.079,
-        0.09,
-        0.096
+        0.087,
+        0.091,
+        0.076
       ],
-      "wall_s_median": 0.09,
+      "wall_s_median": 0.087,
       "action_peak": [
         2.4277,
         2.4668,
@@ -223,11 +223,11 @@
       ],
       "improvement_median": 1990.2767,
       "wall_s": [
-        5.069,
-        5.495,
-        5.666
+        5.378,
+        5.608,
+        5.266
       ],
-      "wall_s_median": 5.495,
+      "wall_s_median": 5.378,
       "action_peak": [
         2.8348,
         2.9987,
@@ -254,8 +254,8 @@
       ],
       "improvement_median": 4.8759,
       "wall_s": [
-        1.137,
-        1.046,
+        0.995,
+        1.13,
         1.057
       ],
       "wall_s_median": 1.057,
@@ -285,11 +285,11 @@
       ],
       "improvement_median": 4.2368,
       "wall_s": [
-        0.725,
-        0.663,
-        0.768
+        0.64,
+        0.634,
+        0.637
       ],
-      "wall_s_median": 0.725,
+      "wall_s_median": 0.637,
       "action_peak": [
         1.0,
         1.0,
@@ -316,11 +316,11 @@
       ],
       "improvement_median": 7.3341,
       "wall_s": [
-        0.701,
-        0.654,
-        0.807
+        0.73,
+        0.629,
+        0.765
       ],
-      "wall_s_median": 0.701,
+      "wall_s_median": 0.73,
       "action_peak": [
         1.0,
         1.0,
@@ -347,11 +347,11 @@
       ],
       "improvement_median": 6.6036,
       "wall_s": [
-        0.696,
-        0.689,
-        0.795
+        0.759,
+        0.613,
+        0.75
       ],
-      "wall_s_median": 0.696,
+      "wall_s_median": 0.75,
       "action_peak": [
         0.9971,
         0.9866,
@@ -378,11 +378,11 @@
       ],
       "improvement_median": 2.2104,
       "wall_s": [
-        0.09,
         0.081,
-        0.101
+        0.076,
+        0.088
       ],
-      "wall_s_median": 0.09,
+      "wall_s_median": 0.081,
       "action_peak": [
         1.0,
         1.0,
