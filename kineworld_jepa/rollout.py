@@ -181,6 +181,23 @@ class ActionRollout(nn.Module):
         return sum(F.mse_loss(p, t.detach()) for p, t in zip(preds, target_latents)) / len(preds)
 
 
+def _action_bounds(low, high, action_dim: int) -> tuple[torch.Tensor, torch.Tensor]:
+    """Validate scalar or per-axis physical limits without silently broadcasting bad data."""
+    if action_dim < 1:
+        raise ValueError("action_dim must be positive")
+    result = []
+    for name, value in (("action_low", low), ("action_high", high)):
+        bound = torch.as_tensor(value, dtype=torch.float32).reshape(-1)
+        if bound.numel() == 1:
+            bound = bound.expand(action_dim).clone()
+        if bound.numel() != action_dim or not torch.isfinite(bound).all():
+            raise ValueError(f"{name} must contain {action_dim} finite values")
+        result.append(bound)
+    if not torch.all(result[0] < result[1]):
+        raise ValueError("action_low must be less than action_high on every axis")
+    return result[0], result[1]
+
+
 class LatentPlanner:
     """Goal-conditioned planning in latent space via Cross-Entropy Method.
 
@@ -191,14 +208,15 @@ class LatentPlanner:
     """
 
     def __init__(self, rollout: ActionRollout, goal_latent: torch.Tensor,
-                 action_dim: int, horizon: int = 8, action_low: float = -1.0,
-                 action_high: float = 1.0):
+                 action_dim: int, horizon: int = 8, action_low=-1.0,
+                 action_high=1.0):
         self.rollout = rollout
         self.goal = goal_latent.detach()
         self.action_dim = action_dim
         self.horizon = horizon
-        self.action_low = action_low
-        self.action_high = action_high
+        self.action_low, self.action_high = _action_bounds(
+            action_low, action_high, action_dim
+        )
 
     @torch.no_grad()
     def _distance(self, latent: torch.Tensor) -> torch.Tensor:
@@ -209,7 +227,11 @@ class LatentPlanner:
 
     def plan(self, latent0: torch.Tensor, iters: int = 12, candidates: int = 256,
               elite_frac: float = 0.1, lr: float = 0.6, device: str = "cpu", seed: int = 0):
-        g = torch.Generator().manual_seed(seed)
+        if iters < 1 or candidates < 1 or not 0 < elite_frac <= 1:
+            raise ValueError("iters and candidates must be positive; elite_frac must be in (0, 1]")
+        g = torch.Generator(device=device).manual_seed(seed)
+        low = self.action_low.to(device=device, dtype=latent0.dtype)
+        high = self.action_high.to(device=device, dtype=latent0.dtype)
         best = None
         best_loss = None
         mean = torch.zeros(candidates, self.horizon, self.action_dim, device=device)
@@ -217,10 +239,11 @@ class LatentPlanner:
         # size, not a frozen floor -- otherwise the search freezes immediately.
         std = torch.ones_like(mean) * 0.5
         for it in range(iters):
-            acts = torch.clamp(
-                mean + std * torch.randn(candidates, self.horizon, self.action_dim,
-                                         generator=g, device=device),
-                self.action_low, self.action_high,
+            acts = torch.maximum(
+                torch.minimum(
+                    mean + std * torch.randn(candidates, self.horizon, self.action_dim,
+                                             generator=g, device=device), high
+                ), low
             )
             futures = self.rollout(latent0.repeat(candidates, 1, 1), acts, self.horizon)
             loss = self._distance(futures[-1])
@@ -228,7 +251,9 @@ class LatentPlanner:
             idx = torch.argsort(loss)[:k]
             elite = acts[idx]
             mean = elite.mean(dim=0)                      # move toward elite mean
-            std = (std * (1 - lr) + elite.std(dim=0) * lr).clamp_(
+            # Preserve the historical sample variance for k>1. A singleton elite
+            # has no sample variance; use the population value (zero) instead of NaN.
+            std = (std * (1 - lr) + elite.std(dim=0, unbiased=(k > 1)) * lr).clamp_(
                 1e-2, 1.0)                                 # shrink but never freeze
             cur = loss[idx[0]].item()
             if best_loss is None or cur < best_loss:
