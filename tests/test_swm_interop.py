@@ -53,7 +53,11 @@ def check(name, cond, extra=""):
 
 
 def build_task(seed=2):
-    """The planning task from test_rollout.py::test_planner_reaches_goal, unchanged."""
+    """Historical out-of-box-goal diagnostic used by SWM-PLANNING-v0.
+
+    The strict native-planner reachability test now generates its goal from
+    in-box actions. Keep this fixture unchanged to compare recorded solver runs.
+    """
     torch.manual_seed(seed)
     model = ActionRollout(
         TASK["dim"], depth=4, heads=4, action_dim=TASK["action_dim"], style="add"

@@ -8,7 +8,7 @@
 机器可读版本：[`SWM-PLANNING-v0/summary.json`](SWM-PLANNING-v0/summary.json)。
 
 环境：torch 2.11.0+cu128 / cpu；上游 stable-worldmodel 0.1.1（MIT，Fork 在 `kineworld/stable-worldmodel`）。
-任务：dim=32，tokens=24，action_dim=4，horizon=8，与 `tests/test_rollout.py::test_planner_reaches_goal` 同一构造。
+任务：dim=32，tokens=24，action_dim=4，horizon=8；沿用旧版测试的框外目标诊断，当前单测已改用框内可达目标。
 种子：2, 3, 4；对应 off-target 基线 25.88, 12.20, 47.66。
 证据级别：**E1** —— one task, one frozen random-initialised model, 3 seeds, CPU only; no trained checkpoint was involved。
 
@@ -67,7 +67,7 @@ harness 忽略输入造成的。
 1. **主导变量是动作框，不是求解器。** 同一个求解器放进 `[-1, 1]` 就停在
    8.23 一档，放开到自由就进入 0.21 一档。
    目标 latent 本身由**未截断**的 `randn` 动作生成，`[-1, 1]` 的框里未必存在解。
-   既有的 `test_planner_reaches_goal` 之所以时红时绿，主因在这里，不在 CEM。
+   旧版 `test_planner_reaches_goal` 之所以时红时绿，主因在这里，不在 CEM；当前单测已修正目标动作范围。
    这是**诊断**：真实本体上框是必要的，`kinejepa_unbounded` 不是提案。
 
 2. **同预算同框：不能一概而论，要按求解器分。** 框住之后手写 8.2277、
@@ -91,9 +91,8 @@ harness 忽略输入造成的。
    `cem`, `mppi`, `predictive_sampling` 只记录动作空间而从不执行。
    `SWMPlanner(enforce_action_bounds=True)` 把框补回来，这也是 `swm_*_boxed` 各臂的由来。
 
-6. **一处对不上的既有注释**：`tests/test_rollout.py` 写 "64 candidates x 8 iters
-   (~140s on a laptop)"，本机实测手写方案中位 1.057s。这里只记录实测，
-   **不改那条注释**——改它属于另一个改动集。
+6. **旧版测试耗时注释**称 64 candidates x 8 iters 在笔记本上约 140s；
+   本实验机器实测手写方案中位 1.057s。当前单测已移除该机器特定估计。
 
 ## 不声称什么
 

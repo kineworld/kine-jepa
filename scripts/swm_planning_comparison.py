@@ -1,11 +1,13 @@
 """Compare kine-jepa's hand-rolled CEM against stable-worldmodel's planning solvers.
 
-The task is the one this repository already ships: `tests/test_rollout.py::
-test_planner_reaches_goal`. An `ActionRollout` is frozen at its random initialisation, a
+The task is the historical out-of-box-goal diagnostic from `tests/test_rollout.py::
+test_planner_reaches_goal` before its reachable-goal fixture was corrected. An
+`ActionRollout` is frozen at its random initialisation, a
 goal latent is produced by rolling it with a chosen action sequence, and a planner must
-find an action sequence landing near that goal. The goal is reachable by construction,
-and its generating actions are drawn from an **unclamped** `randn`, so the only variables
-are the search rule and the space it is allowed to search in.
+find an action sequence landing near that goal. Its generating actions come from an
+**unclamped** `randn`, so the goal is reachable in the free space but may not be
+reachable inside the physical `[-1, 1]` box. This experiment keeps that diagnostic
+unchanged for historical comparability; the unit test now uses an in-box goal.
 
 Design: two axes, not one
 -------------------------
@@ -219,7 +221,7 @@ def cross_revision_check(arms: dict) -> dict[str, bool]:
 
 
 def shipped_assertion(distance: float, base: float) -> bool:
-    """The predicate in tests/test_rollout.py::test_planner_reaches_goal, unchanged."""
+    """The historical strict predicate, kept for comparing recorded runs."""
     return distance < 0.3 * base and distance < base - 1.0
 
 
@@ -339,7 +341,7 @@ def render_markdown(summary: dict) -> str:
 机器可读版本：[`SWM-PLANNING-v0/summary.json`](SWM-PLANNING-v0/summary.json)。
 
 环境：torch {env['torch']} / {env['device']}；上游 {upstream['package']} {upstream['version']}（{upstream['license']}，Fork 在 `kineworld/{upstream['package']}`）。
-任务：dim={task['dim']}，tokens={task['tokens']}，action_dim={task['action_dim']}，horizon={task['horizon']}，与 `tests/test_rollout.py::test_planner_reaches_goal` 同一构造。
+任务：dim={task['dim']}，tokens={task['tokens']}，action_dim={task['action_dim']}，horizon={task['horizon']}；沿用旧版测试的框外目标诊断，当前单测已改用框内可达目标。
 种子：{', '.join(str(s) for s in seeds)}；对应 off-target 基线 {', '.join(f'{b:.2f}' for b in bases)}。
 证据级别：**{summary['evidence_level']}** —— {summary['evidence_level_detail']}。
 
@@ -385,7 +387,7 @@ harness 忽略输入造成的。
 1. **主导变量是动作框，不是求解器。** 同一个求解器放进 `[-1, 1]` 就停在
    {box['distance_median']:.2f} 一档，放开到自由就进入 {unbounded['distance_median']:.2f} 一档。
    目标 latent 本身由**未截断**的 `randn` 动作生成，`[-1, 1]` 的框里未必存在解。
-   既有的 `test_planner_reaches_goal` 之所以时红时绿，主因在这里，不在 CEM。
+   旧版 `test_planner_reaches_goal` 之所以时红时绿，主因在这里，不在 CEM；当前单测已修正目标动作范围。
    这是**诊断**：真实本体上框是必要的，`kinejepa_unbounded` 不是提案。
 
 2. **同预算同框：不能一概而论，要按求解器分。** 框住之后手写 {box['distance_median']:.4f}、
@@ -409,9 +411,8 @@ harness 忽略输入造成的。
    {', '.join('`' + k + '`' for k in clamp_free)} 只记录动作空间而从不执行。
    `SWMPlanner(enforce_action_bounds=True)` 把框补回来，这也是 `swm_*_boxed` 各臂的由来。
 
-6. **一处对不上的既有注释**：`tests/test_rollout.py` 写 "64 candidates x 8 iters
-   (~140s on a laptop)"，本机实测手写方案中位 {box['wall_s_median']:.3f}s。这里只记录实测，
-   **不改那条注释**——改它属于另一个改动集。
+6. **旧版测试耗时注释**称 64 candidates x 8 iters 在笔记本上约 140s；
+   本实验机器实测手写方案中位 {box['wall_s_median']:.3f}s。当前单测已移除该机器特定估计。
 
 ## 不声称什么
 
