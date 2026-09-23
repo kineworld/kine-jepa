@@ -36,6 +36,10 @@ Some experiments require separately obtained upstream checkpoints. Third-party m
 
 KineWorld is exploring a non-LLM route to world modelling based on minimal predictive state, action-conditioned dynamics, uncertainty, active verification and online adaptation. Near-term work is evaluated by reproducible prediction and closed-loop control evidence rather than generated-video appearance.
 
+## Planning with physical action limits
+
+`LatentPlanner` and the optional `stable-worldmodel` solver adapter accept either scalar action bounds or one lower and upper limit per action dimension. For example, a two-axis action with different units can use `action_low=[-0.2, 0.4]` and `action_high=[0.1, 0.6]`. Invalid, nonfinite, or reversed limits fail before search. The native planner also keeps its sampling distribution finite when an iteration retains only one elite candidate. Pass `enforce_action_bounds=True` to `SWMPlanner` to make the optional upstream solver evaluate actions inside the same limits; upstream CEM does not clamp candidates by default. These are planning correctness controls, not evidence of learned-model quality.
+
 ## License
 
 KineWorld-authored code is MIT licensed. See individual experiment files for upstream dependencies and evidence limitations.

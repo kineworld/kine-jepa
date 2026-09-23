@@ -85,6 +85,41 @@ def test_planner_reaches_goal():
           f"baseline_offtarget_d2={base:.2f} planned_d2={loss:.2f}")
 
 
+def test_planner_single_elite_and_per_axis_limits():
+    """A one-sample CEM update must remain finite and respect each actuator limit."""
+    class AdditiveRollout:
+        def __call__(self, latent, actions, horizon=None):
+            state = latent
+            futures = []
+            for step in range(horizon or actions.shape[1]):
+                state = state + actions[:, step].unsqueeze(1)
+                futures.append(state)
+            return futures
+
+    bounds_low = [-0.2, 0.4]
+    bounds_high = [0.1, 0.6]
+    start = torch.zeros(1, 2, 2)
+    planner = LatentPlanner(AdditiveRollout(), torch.ones_like(start), 2, horizon=2,
+                            action_low=bounds_low, action_high=bounds_high)
+    best, loss = planner.plan(start, iters=3, candidates=1, elite_frac=0.1, seed=4)
+    low = torch.tensor(bounds_low)
+    high = torch.tensor(bounds_high)
+    check("test_planner_single_elite_and_per_axis_limits",
+          torch.isfinite(best).all() and torch.isfinite(torch.tensor(loss))
+          and (best >= low).all() and (best <= high).all())
+
+    for invalid_low, invalid_high in (([0.0], [0.0, 1.0]),
+                                      ([0.0, float('nan')], [1.0, 1.0]),
+                                      ([0.0, 0.0, 0.0], [1.0, 1.0])):
+        try:
+            LatentPlanner(AdditiveRollout(), start, 2,
+                          action_low=invalid_low, action_high=invalid_high)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("invalid actuator limits accepted")
+
+
 def test_multi_action_space():
     """Heterogeneous action: continuous arm+grip commands mixed with a discrete
     do(x) intervention, fed as a dict of streams into ActionRollout."""
@@ -152,6 +187,7 @@ if __name__ == "__main__":
     test_rollout_shape()
     test_rollout_cross_style()
     test_planner_reaches_goal()
+    test_planner_single_elite_and_per_axis_limits()
     test_multi_action_space()
     test_long_horizon_stable()
     test_vjepa2_align()

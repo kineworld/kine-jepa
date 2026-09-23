@@ -53,6 +53,8 @@ from typing import Any
 import torch
 import torch.nn.functional as F
 
+from kineworld_jepa.rollout import _action_bounds
+
 
 def swm_available() -> bool:
     """Return True when ``stable-worldmodel`` can be imported in this interpreter.
@@ -96,9 +98,10 @@ class SWMCostModel(torch.nn.Module):
         rollout: an ``ActionRollout`` (or ``VJEPA2AlignedRollout``, which shares the
             ``(N, T, A) -> list[(N, V, D)]`` calling convention).
         action_dim: flattened action dimension. Read from the rollout when omitted.
-        action_low / action_high: when given, every candidate is clipped into this box
-            before the dynamics see it. Off by default because upstream solvers (except
-            ``ICEMSolver``) do not clamp; see :meth:`_project`.
+        action_low / action_high: scalar or per-axis limits. When given, every
+            candidate is clipped into this box before the dynamics see it. Off by
+            default because upstream solvers (except ``ICEMSolver``) do not clamp;
+            see :meth:`_project`.
 
     Example:
         >>> from kineworld_jepa.rollout import ActionRollout
@@ -117,8 +120,8 @@ class SWMCostModel(torch.nn.Module):
         self,
         rollout: torch.nn.Module,
         action_dim: int | None = None,
-        action_low: float | None = None,
-        action_high: float | None = None,
+        action_low=None,
+        action_high=None,
     ):
         super().__init__()
         self.dynamics = rollout
@@ -132,8 +135,10 @@ class SWMCostModel(torch.nn.Module):
         self.action_dim = int(resolved)
         if (action_low is None) != (action_high is None):
             raise ValueError("pass both action_low and action_high, or neither")
-        self.action_low = action_low
-        self.action_high = action_high
+        self.action_low, self.action_high = (
+            _action_bounds(action_low, action_high, self.action_dim)
+            if action_low is not None else (None, None)
+        )
 
     def _project(self, actions: torch.Tensor) -> torch.Tensor:
         """Clip ``actions`` into ``[action_low, action_high]`` when bounds are set.
@@ -153,7 +158,9 @@ class SWMCostModel(torch.nn.Module):
         """
         if self.action_low is None:
             return actions
-        return actions.clamp(self.action_low, self.action_high)
+        low = self.action_low.to(device=actions.device, dtype=actions.dtype)
+        high = self.action_high.to(device=actions.device, dtype=actions.dtype)
+        return torch.maximum(torch.minimum(actions, high), low)
 
     # -- the newer `Dynamics` surface, implemented under its own names ----------------
 
@@ -279,9 +286,9 @@ class SWMPlanner:
             ``solver_kwargs``.
         seed: passed to the solver's own generator.
         device: torch device string.
-        action_low / action_high: the action box. Recorded in the space handed to
-            ``configure`` (honoured natively by ``icem``), and enforced on the candidates
-            of every solver when ``enforce_action_bounds`` is set.
+        action_low / action_high: scalar or per-axis action box. Recorded in the
+            space handed to ``configure`` (honoured natively by ``icem``), and
+            enforced on every solver's candidates when ``enforce_action_bounds`` is set.
         enforce_action_bounds: clip candidates into ``[action_low, action_high]`` before
             the dynamics see them. Default ``False`` reproduces upstream behaviour exactly.
         **solver_kwargs: forwarded to the solver constructor, e.g. ``num_samples=64``,
@@ -299,8 +306,8 @@ class SWMPlanner:
         solver: str = "cem",
         seed: int = 0,
         device: str = "cpu",
-        action_low: float = -1.0,
-        action_high: float = 1.0,
+        action_low=-1.0,
+        action_high=1.0,
         enforce_action_bounds: bool = False,
         **solver_kwargs: Any,
     ):
@@ -318,8 +325,9 @@ class SWMPlanner:
         self.action_dim = int(action_dim)
         self.horizon = int(horizon)
         self.device = device
-        self.action_low = action_low
-        self.action_high = action_high
+        self.action_low, self.action_high = _action_bounds(
+            action_low, action_high, self.action_dim
+        )
         self.enforce_action_bounds = bool(enforce_action_bounds)
         self.solver_name = solver
         self.cost_model = SWMCostModel(
@@ -344,12 +352,9 @@ class SWMPlanner:
 
         import stable_worldmodel as swm
 
-        flat = Box(
-            low=self.action_low,
-            high=self.action_high,
-            shape=(n_envs, self.action_dim),
-            dtype=np.float32,
-        )
+        low = np.broadcast_to(self.action_low.numpy(), (n_envs, self.action_dim)).copy()
+        high = np.broadcast_to(self.action_high.numpy(), (n_envs, self.action_dim)).copy()
+        flat = Box(low=low, high=high, dtype=np.float32)
         config = swm.PlanConfig(
             horizon=self.horizon,
             receding_horizon=1,
@@ -387,7 +392,9 @@ class SWMPlanner:
         # not by an argument about convexity. Without it, `icem` is in-box (it clamps
         # natively) while `cem` is not -- a silent asymmetry between arms.
         if self.enforce_action_bounds:
-            actions = actions.clamp(self.action_low, self.action_high)
+            low = self.action_low.to(device=actions.device, dtype=actions.dtype)
+            high = self.action_high.to(device=actions.device, dtype=actions.dtype)
+            actions = torch.maximum(torch.minimum(actions, high), low)
         return actions, self._achieved_distance(latent0, actions), elapsed
 
 

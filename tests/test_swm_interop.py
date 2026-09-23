@@ -137,6 +137,48 @@ def test_goal_generating_actions_cost_zero():
           f"cost(a_star)={cost_star:.2e} cost(random)={cost_offtarget:.2f} base={base:.2f}")
 
 
+def test_per_axis_bounds_are_applied_before_dynamics():
+    """The upstream search must score exactly the actions a robot may execute."""
+    class CaptureRollout:
+        action_dim = 2
+
+        def __init__(self):
+            self.seen = None
+
+        def __call__(self, latent, actions, horizon=None):
+            self.seen = actions
+            return [latent for _ in range(horizon)]
+
+    rollout = CaptureRollout()
+    model = SWMCostModel(rollout, action_low=[-0.2, 0.4],
+                         action_high=[0.1, 0.6])
+    actions = torch.tensor([[[[7.0, -9.0], [-8.0, 9.0]]]])
+    info = {"latent": torch.zeros(1, 2, 2), "goal_latent": torch.zeros(1, 2, 2)}
+    model.get_cost(info, actions)
+    expected = torch.tensor([[[0.1, 0.4], [-0.2, 0.6]]])
+    check("test_per_axis_bounds_are_applied_before_dynamics",
+          torch.equal(rollout.seen, expected))
+
+
+def test_upstream_cem_accepts_per_axis_limits():
+    """The released solver's Box and returned plan use the same physical limits."""
+    if not swm_available():
+        raise unittest.SkipTest("stable-worldmodel not installed")
+    torch.manual_seed(13)
+    model = ActionRollout(8, depth=1, heads=2, action_dim=2).eval()
+    latent = torch.zeros(1, 2, 8)
+    planner = SWMPlanner(model, latent, action_dim=2, horizon=2, solver="cem",
+                         action_low=[-0.2, 0.4], action_high=[0.1, 0.6],
+                         enforce_action_bounds=True, num_samples=4, n_steps=2, topk=2)
+    actions, distance, _ = planner.plan(latent)
+    low = torch.tensor([-0.2, 0.4])
+    high = torch.tensor([0.1, 0.6])
+    check("test_upstream_cem_accepts_per_axis_limits",
+          actions.shape == (1, 2, 2) and torch.isfinite(actions).all()
+          and (actions >= low).all() and (actions <= high).all()
+          and torch.isfinite(torch.tensor(distance)))
+
+
 def test_swm_solvers_reach_the_goal_at_matched_budget():
     """Matched budget, same task: upstream CEM and MPPI reach the goal.
 
@@ -252,6 +294,8 @@ if __name__ == "__main__":
     test_adapter_has_no_module_level_upstream_import()
     test_adapter_cost_equals_latent_planner_distance()
     test_goal_generating_actions_cost_zero()
+    test_per_axis_bounds_are_applied_before_dynamics()
+    test_upstream_cem_accepts_per_axis_limits()
     test_swm_solvers_reach_the_goal_at_matched_budget()
     test_upstream_solvers_do_not_clamp_unless_asked()
     print(f"\nall {len(PASSED)} swm-interop tests passed")
