@@ -52,8 +52,10 @@ def test_rollout_cross_style():
 
 def test_planner_reaches_goal():
     """If the model can imagine futures, a planner must recover an action
-    sequence that lands a rolled-out latent on a *reachable* goal -- here the
-    goal is the latent the model itself produces for a chosen action sequence.
+    sequence that lands a rolled-out latent on a *reachable within bounds* goal.
+    The generating actions must obey the planner's default [-1, 1] action box;
+    otherwise an unconstrained goal can make this strict reachability check fail
+    even when the planner searches correctly.
     """
     torch.manual_seed(2)
     dim, V, action_dim, H = 32, 24, 4, 8
@@ -61,7 +63,8 @@ def test_planner_reaches_goal():
     m.eval()
 
     lat0 = torch.randn(1, V, dim)
-    a_star = torch.randn(1, H, action_dim)  # the "true" action sequence
+    a_star = torch.randn(1, H, action_dim).clamp(-1, 1)
+    assert a_star.abs().max() <= 1
     with torch.no_grad():
         goal = m(lat0, a_star)[-1].detach()  # a reachable goal
 
@@ -70,10 +73,10 @@ def test_planner_reaches_goal():
     # baseline: distance from a *different* reachable endpoint (another action
     # sequence rolled from lat0) to the same goal. The planner must do far better.
     with torch.no_grad():
-        other = torch.randn(1, H, action_dim)
+        other = torch.randn(1, H, action_dim).clamp(-1, 1)
         base = (m(lat0, other)[-1].mean(1) - goal.mean(1)).pow(2).sum().item()
 
-    # CPU-friendly load: 64 candidates x 8 iters (~140s on a laptop); the
+    # CPU load: 64 candidates x 8 iterations; the
     # planner still must beat the off-target baseline by a wide margin.
     best, loss = planner.plan(lat0, iters=8, candidates=64, device="cpu", seed=3)
     # The planner must beat the off-target baseline by a wide margin: at random
