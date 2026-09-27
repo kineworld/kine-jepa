@@ -164,11 +164,12 @@ class ActionRollout(nn.Module):
             out.append(cur)
         return out
 
-    @torch.no_grad()
     def training_loss(self, latent0: torch.Tensor, actions: torch.Tensor,
                       target_latents: list) -> torch.Tensor:
-        """Teacher-forced next-latent regression for *post-training* the predictor
-        on real trajectories (the moat recipe). Returns mean MSE over `horizon`
+        """Differentiable recursive regression for post-training the predictor.
+
+        Targets are detached; gradients flow through the predicted rollout.
+        Returns mean MSE over `horizon`
         steps between the rolled-out and the ground-truth future latents.
 
         latent0: (B, V, D)   initial visible latent
