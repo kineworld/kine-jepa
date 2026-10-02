@@ -46,6 +46,8 @@ without a GPU on the laptop for short horizons.
 
 from __future__ import annotations
 
+import operator
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -198,6 +200,17 @@ def _action_bounds(low, high, action_dim: int) -> tuple[torch.Tensor, torch.Tens
     return result[0], result[1]
 
 
+def _positive_count(value, name: str) -> int:
+    """Accept Python/index-compatible integer counts without accepting booleans."""
+    try:
+        result = operator.index(value)
+    except TypeError as error:
+        raise ValueError(f"{name} must be a positive integer") from error
+    if isinstance(value, bool) or result < 1:
+        raise ValueError(f"{name} must be a positive integer")
+    return result
+
+
 class LatentPlanner:
     """Goal-conditioned planning in latent space via Cross-Entropy Method.
 
@@ -210,6 +223,7 @@ class LatentPlanner:
     def __init__(self, rollout: ActionRollout, goal_latent: torch.Tensor,
                  action_dim: int, horizon: int = 8, action_low=-1.0,
                  action_high=1.0):
+        horizon = _positive_count(horizon, "horizon")
         self.rollout = rollout
         self.goal = goal_latent.detach()
         self.action_dim = action_dim
@@ -227,29 +241,63 @@ class LatentPlanner:
 
     def plan(self, latent0: torch.Tensor, iters: int = 12, candidates: int = 256,
               elite_frac: float = 0.1, lr: float = 0.6, device: str = "cpu", seed: int = 0):
-        if iters < 1 or candidates < 1 or not 0 < elite_frac <= 1:
-            raise ValueError("iters and candidates must be positive; elite_frac must be in (0, 1]")
+        iters, candidates = _positive_count(iters, "iters"), _positive_count(candidates, "candidates")
+        if not 0 < elite_frac <= 1:
+            raise ValueError("elite_frac must be in (0, 1]")
+        if not 0 <= lr <= 1:
+            raise ValueError("lr must be in [0, 1]")
+        if latent0.ndim != 3 or latent0.shape[0] != 1 or min(latent0.shape[1:]) < 1:
+            raise ValueError("latent0 must contain one observation with shape [1, tokens, features]")
+        if (self.goal.ndim != 3 or self.goal.shape[0] != 1 or self.goal.shape[1] < 1
+                or self.goal.shape[2] != latent0.shape[2]):
+            raise ValueError("goal_latent must have one observation and matching feature width")
+        requested = torch.device(device)
+        if (requested.type != latent0.device.type
+                or (requested.type != "cpu" and requested.index is not None
+                    and requested.index != latent0.device.index)):
+            raise ValueError("device must match latent0.device")
+        if self.goal.device != latent0.device:
+            raise ValueError("goal_latent and latent0 must share a device")
+        if (not latent0.is_floating_point() or not self.goal.is_floating_point()
+                or not torch.isfinite(latent0).all()
+                or not torch.isfinite(self.goal).all()):
+            raise ValueError("latents must be finite floating-point tensors")
+        # Resolve an unspecified accelerator index to the input tensor's device,
+        # rather than the process's current accelerator.
+        device = latent0.device
         g = torch.Generator(device=device).manual_seed(seed)
         low = self.action_low.to(device=device, dtype=latent0.dtype)
         high = self.action_high.to(device=device, dtype=latent0.dtype)
+        if not torch.isfinite(low).all() or not torch.isfinite(high).all() or not (low < high).all():
+            raise ValueError("action bounds must remain finite and ordered in the latent dtype")
+        # Search in dimensionless coordinates so actuator offsets and units do
+        # not change the CEM prior or variance floor. The rollout still receives
+        # physical actions, and [-1, 1] retains the historical search exactly.
+        width = high - low
+        finite_width = torch.isfinite(width)
+        # Subtract first for tiny intervals (halving each endpoint can underflow).
+        # Halve first only when subtracting extreme opposite limits overflows.
+        scale = torch.where(finite_width, width * 0.5, high * 0.5 - low * 0.5)
+        center = torch.where(finite_width, low + scale, low * 0.5 + high * 0.5)
+        if not torch.isfinite(center).all() or not torch.isfinite(scale).all() or not (scale > 0).all():
+            raise ValueError("action range must be representable in the latent dtype")
         best = None
         best_loss = None
-        mean = torch.zeros(candidates, self.horizon, self.action_dim, device=device)
+        mean = torch.zeros(candidates, self.horizon, self.action_dim,
+                           device=device, dtype=latent0.dtype)
         # std is *per-distribution* (not per-elite): elite variance sets a step
         # size, not a frozen floor -- otherwise the search freezes immediately.
         std = torch.ones_like(mean) * 0.5
         for it in range(iters):
-            acts = torch.maximum(
-                torch.minimum(
-                    mean + std * torch.randn(candidates, self.horizon, self.action_dim,
-                                             generator=g, device=device), high
-                ), low
-            )
+            normalized = (mean + std * torch.randn(
+                candidates, self.horizon, self.action_dim,
+                generator=g, device=device, dtype=latent0.dtype)).clamp(-1.0, 1.0)
+            acts = torch.maximum(torch.minimum(center + scale * normalized, high), low)
             futures = self.rollout(latent0.repeat(candidates, 1, 1), acts, self.horizon)
             loss = self._distance(futures[-1])
             k = max(1, int(elite_frac * candidates))
             idx = torch.argsort(loss)[:k]
-            elite = acts[idx]
+            elite = normalized[idx]
             mean = elite.mean(dim=0)                      # move toward elite mean
             # Preserve the historical sample variance for k>1. A singleton elite
             # has no sample variance; use the population value (zero) instead of NaN.
@@ -258,7 +306,7 @@ class LatentPlanner:
             cur = loss[idx[0]].item()
             if best_loss is None or cur < best_loss:
                 best_loss = cur
-                best = elite[0]
+                best = acts[idx[0]]
         return best.detach(), best_loss
 
 
@@ -344,9 +392,11 @@ class VJEPA2AlignedRollout(nn.Module):
     """
 
     def __init__(self, out_tokens: int = 1024, dim: int = 1024, depth: int = 6,
-                 heads: int = 12, action_dim: int = 8, style: str = "add",
+                 heads: int = 16, action_dim: int = 8, style: str = "add",
                  action_embed: nn.Module | None = None, latent_clip: float | None = None):
         super().__init__()
+        # 1024 / 16 = 64 features per head, as in the V-JEPA 2 ViT-L encoder.
+        # Explicit head counts remain unchanged for existing configurations.
         self.projector = VJEPA2Projector(in_tokens=8192, out_tokens=out_tokens, dim=dim)
         self.rollout = ActionRollout(dim, depth=depth, heads=heads, action_dim=action_dim,
                                      style=style, action_embed=action_embed, latent_clip=latent_clip)

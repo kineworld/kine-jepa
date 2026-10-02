@@ -1,0 +1,252 @@
+{
+  "baseline_commit": "1b1b7e3d8e30f5b256696898e303c6ab6245463e",
+  "environment": {
+    "python": "3.12.14",
+    "torch": "2.14.1+cpu",
+    "device": "cpu"
+  },
+  "metric": "terminal squared error in unchanged canonical state coordinates",
+  "horizon": 4,
+  "iterations": 8,
+  "candidates": 64,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "canonical_actions_and_losses": "bitwise identical for all 10 paired seeds",
+  "scope": "analytic dynamics/planner correctness only; no learned-world-model performance claim",
+  "summary": {
+    "canonical": {
+      "old_loss": 0.001480486666696379,
+      "new_loss": 0.001480486666696379
+    },
+    "shifted": {
+      "old_loss": 70.55198745727539,
+      "new_loss": 0.0014804871323576662
+    },
+    "mixed_units": {
+      "old_loss": 3.9838223695755004,
+      "new_loss": 0.001480479889869457
+    }
+  },
+  "records": [
+    {
+      "representation": "canonical",
+      "seed": 0,
+      "old_loss": 0.000667885469738394,
+      "new_loss": 0.000667885469738394,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "canonical",
+      "seed": 1,
+      "old_loss": 0.00026569224428385496,
+      "new_loss": 0.00026569224428385496,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "canonical",
+      "seed": 2,
+      "old_loss": 6.479582225438207e-05,
+      "new_loss": 6.479582225438207e-05,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "canonical",
+      "seed": 3,
+      "old_loss": 0.0007502214866690338,
+      "new_loss": 0.0007502214866690338,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "canonical",
+      "seed": 4,
+      "old_loss": 0.003160079475492239,
+      "new_loss": 0.003160079475492239,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "canonical",
+      "seed": 5,
+      "old_loss": 6.617098551942036e-05,
+      "new_loss": 6.617098551942036e-05,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "canonical",
+      "seed": 6,
+      "old_loss": 0.001301588024944067,
+      "new_loss": 0.001301588024944067,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "canonical",
+      "seed": 7,
+      "old_loss": 0.004240487236529589,
+      "new_loss": 0.004240487236529589,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "canonical",
+      "seed": 8,
+      "old_loss": 0.0018161305924877524,
+      "new_loss": 0.0018161305924877524,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "canonical",
+      "seed": 9,
+      "old_loss": 0.0024718153290450573,
+      "new_loss": 0.0024718153290450573,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "shifted",
+      "seed": 0,
+      "old_loss": 70.70479583740234,
+      "new_loss": 0.0006678961217403412,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "shifted",
+      "seed": 1,
+      "old_loss": 70.53050994873047,
+      "new_loss": 0.0002656929427757859,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "shifted",
+      "seed": 2,
+      "old_loss": 70.55975341796875,
+      "new_loss": 6.47981942165643e-05,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "shifted",
+      "seed": 3,
+      "old_loss": 70.58856964111328,
+      "new_loss": 0.0007502276566810906,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "shifted",
+      "seed": 4,
+      "old_loss": 70.73611450195312,
+      "new_loss": 0.003160106251016259,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "shifted",
+      "seed": 5,
+      "old_loss": 70.38335418701172,
+      "new_loss": 6.616599421249703e-05,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "shifted",
+      "seed": 6,
+      "old_loss": 70.46646881103516,
+      "new_loss": 0.0013015544973313808,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "shifted",
+      "seed": 7,
+      "old_loss": 70.54358673095703,
+      "new_loss": 0.004240488633513451,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "shifted",
+      "seed": 8,
+      "old_loss": 70.48595428466797,
+      "new_loss": 0.0018161305924877524,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "shifted",
+      "seed": 9,
+      "old_loss": 70.52076721191406,
+      "new_loss": 0.0024718104396015406,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "mixed_units",
+      "seed": 0,
+      "old_loss": 3.981260061264038,
+      "new_loss": 0.0006678825011476874,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "mixed_units",
+      "seed": 1,
+      "old_loss": 3.9851558208465576,
+      "new_loss": 0.00026570455520413816,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "mixed_units",
+      "seed": 2,
+      "old_loss": 3.983527898788452,
+      "new_loss": 6.479431613115594e-05,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "mixed_units",
+      "seed": 3,
+      "old_loss": 3.9844160079956055,
+      "new_loss": 0.0007502214866690338,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "mixed_units",
+      "seed": 4,
+      "old_loss": 3.980454206466675,
+      "new_loss": 0.003160084132105112,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "mixed_units",
+      "seed": 5,
+      "old_loss": 3.9817721843719482,
+      "new_loss": 6.617465987801552e-05,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "mixed_units",
+      "seed": 6,
+      "old_loss": 3.9902098178863525,
+      "new_loss": 0.0013015602016821504,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "mixed_units",
+      "seed": 7,
+      "old_loss": 3.978440761566162,
+      "new_loss": 0.004240425769239664,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "mixed_units",
+      "seed": 8,
+      "old_loss": 3.984508752822876,
+      "new_loss": 0.001816128264181316,
+      "candidates_evaluated": 512
+    },
+    {
+      "representation": "mixed_units",
+      "seed": 9,
+      "old_loss": 3.988478183746338,
+      "new_loss": 0.002471823012456298,
+      "candidates_evaluated": 512
+    }
+  ]
+}
