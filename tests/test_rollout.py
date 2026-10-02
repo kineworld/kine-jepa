@@ -123,6 +123,122 @@ def test_planner_single_elite_and_per_axis_limits():
             raise AssertionError("invalid actuator limits accepted")
 
 
+def test_planner_affine_action_units():
+    """Equivalent actuator units must preserve the search and its fixed budget."""
+    class UnitRollout:
+        def __init__(self, low, high):
+            self.low = torch.tensor(low, dtype=torch.float64)
+            self.high = torch.tensor(high, dtype=torch.float64)
+            self.calls = 0
+
+        def __call__(self, latent, actions, horizon):
+            self.calls += 1
+            assert actions.shape == (64, 4, 2)
+            assert actions.dtype == latent.dtype == torch.float64
+            assert (actions >= self.low).all() and (actions <= self.high).all()
+            state, futures = latent, []
+            for t in range(horizon):
+                unit_action = 2 * (actions[:, t] - self.low) / (self.high - self.low) - 1
+                state = state + unit_action[:, None]
+                futures.append(state)
+            return futures
+
+    start = torch.zeros(1, 1, 2, dtype=torch.float64)
+    goal = torch.full_like(start, 2)
+    boxes = [([-1., -1.], [1., 1.]), ([100., 100.], [200., 200.]),
+             ([-1000., 0.5], [-500., 0.75])]
+    for seed in (0, 3, 9):
+        reference = None
+        for low, high in boxes:
+            rollout = UnitRollout(low, high)
+            planner = LatentPlanner(rollout, goal, 2, horizon=4,
+                                    action_low=low, action_high=high)
+            best, loss = planner.plan(start, iters=8, candidates=64, seed=seed)
+            normalized = 2 * (best - rollout.low) / (rollout.high - rollout.low) - 1
+            assert rollout.calls == 8
+            assert loss < 0.02
+            if reference is None:
+                reference = normalized, loss
+            else:
+                assert torch.allclose(normalized, reference[0], atol=1e-10, rtol=0)
+                assert abs(loss - reference[1]) < 1e-10
+    check("test_planner_affine_action_units", True)
+
+
+def test_planner_invalid_tensor_contracts():
+    """Reject invalid state/device/dtype contracts before evaluating a candidate."""
+    class NeverCalled:
+        def __call__(self, *args):
+            raise AssertionError("invalid input reached dynamics")
+
+    start = torch.zeros(1, 1, 2)
+    for goal, initial, device in [(start.cfloat(), start, "cpu"),
+                                  (start, start, "meta"),
+                                  (start, start.expand(2, -1, -1), "cpu"),
+                                  (start, torch.full_like(start, float('nan')), "cpu")]:
+        planner = LatentPlanner(NeverCalled(), goal, 2)
+        try:
+            planner.plan(initial, device=device)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("invalid tensor contract accepted")
+    for horizon in (0, -1, 1.5, True):
+        try:
+            LatentPlanner(NeverCalled(), start, 2, horizon=horizon)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("invalid horizon accepted")
+    half = start.half()
+    planner = LatentPlanner(NeverCalled(), half, 2, action_low=100000., action_high=200000.)
+    try:
+        planner.plan(half)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("bounds overflowing the latent dtype accepted")
+    check("test_planner_invalid_tensor_contracts", True)
+
+
+def test_planner_preserves_index_counts_and_goal_promotion():
+    """Index-compatible counts and mixed floating-point goal dtypes stay valid."""
+    import numpy as np
+
+    class AdditiveRollout:
+        def __call__(self, latent, actions, horizon):
+            assert actions.dtype == latent.dtype == torch.float32
+            futures = []
+            for step in range(horizon):
+                latent = latent + actions[:, step, None]
+                futures.append(latent)
+            return futures
+
+    initial = torch.zeros(1, 1, 1)
+    planner = LatentPlanner(AdditiveRollout(), torch.ones(1, 1, 1, dtype=torch.float64),
+                            1, horizon=np.int64(2))
+    best, loss = planner.plan(initial, iters=np.int64(2), candidates=np.int64(8))
+    assert best.dtype == torch.float32 and torch.isfinite(best).all()
+    assert torch.isfinite(torch.tensor(loss))
+    check("test_planner_preserves_index_counts_and_goal_promotion", True)
+
+
+def test_planner_representable_half_precision_bounds():
+    """Do not lose a representable subnormal half-range by halving endpoints."""
+    class ConstantRollout:
+        def __call__(self, latent, actions, horizon):
+            assert actions.dtype == torch.float16 and torch.isfinite(actions).all()
+            return [latent for _ in range(horizon)]
+
+    limit = 2.0 ** -24
+    initial = torch.zeros(1, 1, 1, dtype=torch.float16)
+    planner = LatentPlanner(ConstantRollout(), initial, 1, horizon=1,
+                            action_low=-limit, action_high=limit)
+    best, loss = planner.plan(initial, candidates=1, iters=2)
+    assert torch.isfinite(best).all() and (best.abs() <= limit).all() and loss == 0
+    check("test_planner_representable_half_precision_bounds", True)
+
+
 def test_multi_action_space():
     """Heterogeneous action: continuous arm+grip commands mixed with a discrete
     do(x) intervention, fed as a dict of streams into ActionRollout."""
@@ -173,6 +289,44 @@ def test_vjepa2_align():
     check("test_vjepa2_align", ok, f"proj->{(1, out_tokens, dim)}; dim={dim}==V-JEPA2")
 
 
+def test_vjepa2_default_constructor():
+    """The advertised 1024-dimensional default must have a valid head count."""
+    # Check every constructor default without allocating a full-size model.
+    with torch.device("meta"):
+        model = VJEPA2AlignedRollout()
+    assert model.projector.proj.in_features == 1024
+    assert len(model.rollout.blocks) == 6
+    assert all(block.self_attn.num_heads == 16 for block in model.rollout.blocks)
+    check("test_vjepa2_default_constructor", True)
+
+
+def test_vjepa2_default_heads_rollout():
+    """Exercise real CPU inference with the default feature width and heads."""
+    torch.manual_seed(8)
+    model = VJEPA2AlignedRollout(out_tokens=8, depth=1).eval()
+    with torch.no_grad():
+        futures = model(torch.randn(1, 8192, 1024), torch.randn(1, 2, 8))
+    assert len(futures) == 2
+    assert all(z.shape == (1, 8, 1024) and torch.isfinite(z).all() for z in futures)
+    check("test_vjepa2_default_heads_rollout", True)
+
+
+def test_vjepa2_explicit_heads_checkpoint_roundtrip():
+    """Explicit head counts retain their architecture and strict loading path."""
+    torch.manual_seed(9)
+    config = dict(out_tokens=8, dim=48, depth=1, heads=12, action_dim=4)
+    model = VJEPA2AlignedRollout(**config).eval()
+    restored = VJEPA2AlignedRollout(**config).eval()
+    restored.load_state_dict(model.state_dict(), strict=True)
+    assert restored.rollout.blocks[0].self_attn.num_heads == 12
+    latent, actions = torch.randn(1, 8192, 48), torch.randn(1, 2, 4)
+    with torch.no_grad():
+        expected, actual = model(latent, actions), restored(latent, actions)
+    assert len(expected) == len(actual) == 2
+    assert all(torch.equal(a, b) for a, b in zip(expected, actual))
+    check("test_vjepa2_explicit_heads_checkpoint_roundtrip", True)
+
+
 def test_training_loss():
     """Teacher-forced regression returns a finite scalar loss for post-training."""
     torch.manual_seed(7)
@@ -191,8 +345,15 @@ if __name__ == "__main__":
     test_rollout_cross_style()
     test_planner_reaches_goal()
     test_planner_single_elite_and_per_axis_limits()
+    test_planner_affine_action_units()
+    test_planner_invalid_tensor_contracts()
+    test_planner_preserves_index_counts_and_goal_promotion()
+    test_planner_representable_half_precision_bounds()
     test_multi_action_space()
     test_long_horizon_stable()
     test_vjepa2_align()
+    test_vjepa2_default_constructor()
+    test_vjepa2_default_heads_rollout()
+    test_vjepa2_explicit_heads_checkpoint_roundtrip()
     test_training_loss()
     print(f"\nall {len(PASSED)} rollout tests passed")
