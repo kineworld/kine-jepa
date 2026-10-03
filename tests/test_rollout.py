@@ -79,10 +79,12 @@ def test_planner_reaches_goal():
     # CPU load: 64 candidates x 8 iterations; the
     # planner still must beat the off-target baseline by a wide margin.
     best, loss = planner.plan(lat0, iters=8, candidates=64, device="cpu", seed=3)
-    # The planner must beat the off-target baseline by a wide margin: at random
-    # init the dynamics are a narrow function of the action, so CEM recovers
-    # the *right neighbourhood* of actions (30x closer) rather than the exact
-    # path; a trained model with real gradients closes the rest.
+    # The planner must beat the off-target baseline by the margin asserted below:
+    # `loss < 0.3 * base`, i.e. more than 3.33x closer. The margin this actually
+    # measures is build-dependent, because `base` is a single random draw -- on a
+    # local CUDA wheel (seed 3) it is 25.88 -> 8.15, a factor of 3.18, so this test
+    # fails here and passes on CI's CPU wheel. That disagreement is known and is not
+    # fixed by moving the constant; see kineworld/kine-jepa#3.
     improved = loss < 0.3 * base and loss < base - 1.0
     check("test_planner_reaches_goal", improved,
           f"baseline_offtarget_d2={base:.2f} planned_d2={loss:.2f}")
